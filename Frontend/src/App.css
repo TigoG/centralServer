@@ -1,0 +1,25 @@
+.app {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  padding: 1rem;
+  background: #0b7285;
+  color: white;
+}
+
+.map-wrap {
+  padding: 1rem;
+  flex: 1;
+}
+
+.leaflet-container {
+  height: 70vh;
+  width: 100%;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
