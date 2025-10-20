@@ -1,5 +1,5 @@
 // WeatherMap.jsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -50,7 +50,7 @@ function formatSensorValue(sensor, value) {
   }
 }
 
-const generateSensors = () => {
+export const generateSensors = () => {
   const out = {};
   // required sensors always present
   out.temperature = +(Math.random() * 15 + 5).toFixed(1);
@@ -101,10 +101,11 @@ const generateSensors = () => {
   return out;
 };
 
-export default function WeatherMap() {
+export default function WeatherMap({ stations: propStations = null, focusId = null }) {
   const [focusedStation, setFocusedStation] = useState(null);
 
-  const stations = useMemo(() => {
+  // internal stations used when parent doesn't provide stations prop
+  const [internalStations, setInternalStations] = useState(() => {
     const base = [
       { id: '1051804', name: 'Tigo Goes', lat: 51.8247, lon: 4.4126, location: 0 },
       { id: 'station-2', name: 'Station B', lat: 51.9244, lon: 4.4777, location: 1 },
@@ -114,7 +115,16 @@ export default function WeatherMap() {
       { id: 'station-6', name: 'Station F', lat: 52.3702, lon: 4.8952, location: 1 },
     ];
     return base.map((s) => ({ ...s, sensors: generateSensors() }));
-  }, []);
+  });
+
+  const stations = propStations ?? internalStations;
+
+  // If parent wants to focus a station, open its popup
+  useEffect(() => {
+    if (!focusId) return;
+    const found = stations.find((s) => s.id === focusId || s.id.includes(focusId) || focusId.includes(s.id));
+    if (found) setFocusedStation({ ...found, __openAt: Date.now() });
+  }, [focusId, stations]);
 
   function FocusedPopup({ station, onClose }) {
     const map = useMap();
@@ -195,7 +205,6 @@ export default function WeatherMap() {
             position={[s.lat, s.lon]}
             eventHandlers={{
               click: () => {
-                // attach a timestamp so clicking the same station after closing re-opens the popup
                 setFocusedStation({ ...s, sensors: s.sensors, __openAt: Date.now() });
               },
             }}
