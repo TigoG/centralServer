@@ -1,0 +1,11 @@
+.leaflet-container {
+  height: 70vh;
+  width: 100%;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.map-wrap {
+  padding: 1rem;
+  flex: 1;
+}
