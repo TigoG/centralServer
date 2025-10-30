@@ -6,6 +6,13 @@
   min-height: 100vh;
 }
 
+.app-body {
+  display: flex;
+  padding: 1rem;
+  flex-direction: row;
+  gap: 1rem;
+}
+
 .app-header {
   padding: 1rem;
   background: #0b7285;
@@ -23,3 +30,4 @@
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
