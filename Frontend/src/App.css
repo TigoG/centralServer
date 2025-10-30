@@ -14,13 +14,15 @@ html, body, #root {
 
 /* header takes a percent of the viewport (strict percent-based heights) */
 .app-header {
-  height: 12%;
-  padding: 1%;
+  padding: 1rem;
   background: #0b7285;
+  padding: 0 4rem ;
+  background-image: linear-gradient(var(--accent) 0%, #00132d 100%);
   color: white;
+  margin-bottom: 4vh;
   display: flex;
   align-items: center;
-  box-sizing: border-box;
+  justify-content: space-between;
 }
 
 /* body fills the remaining percent */
