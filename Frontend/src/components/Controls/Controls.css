@@ -1,0 +1,88 @@
+/* Controls.css - styling for the fold-down controls area */
+.controls {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.controls__buttons {
+  width: 92%;
+  margin: 0 auto;
+  display: flex;
+  gap: 1%;
+  height: 60%;
+  align-items: center;
+}
+
+.controls__btn {
+  flex: 1;
+  padding: 1% 2%;
+  height: 100%;
+  border-radius: 1%;
+  font-weight: 600;
+  font-size: 1rem;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.controls__btn--primary {
+  background: #0b7285;
+  color: #fff;
+  border: none;
+}
+
+.controls__btn--secondary {
+  background: #fff;
+  color: #0b7285;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.controls__folddown {
+  width: 92%;
+  max-width: 100%;
+  margin: 1% auto 0;
+  overflow: hidden;
+  transition: max-height 360ms ease, padding 300ms ease, box-shadow 300ms ease;
+  max-height: 0%;
+  padding: 0% 1%;
+  box-sizing: border-box;
+}
+
+.controls__folddown--open {
+  max-height: 60%;
+  padding: 1%;
+  box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+}
+
+.controls__folddown-inner {
+  opacity: 1;
+  transition: opacity 220ms ease 120ms;
+}
+
+.controls__row {
+  display: flex;
+  gap: 1%;
+  align-items: center;
+}
+
+.controls-input {
+  flex: 1;
+  padding: 1% 1.2%;
+  box-sizing: border-box;
+}
+
+.controls__coord-row {
+  display: flex;
+  gap: 1%;
+}
+
+.controls__add-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1%;
+  margin-top: 1%;
+}
+
+.controls__error {
+  margin-top: 1%;
+  color: #b91c1c;
+}

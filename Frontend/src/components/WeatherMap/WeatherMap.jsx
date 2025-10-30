@@ -1,10 +1,9 @@
-// WeatherMap.jsx
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import '../App.css';
-import { NL_CENTER, NL_ZOOM, SENSOR_TYPES, STUDENT_NUMBER } from '../config/constants';
+import './WeatherMap.css';
+import { NL_CENTER, NL_ZOOM, SENSOR_TYPES, STUDENT_NUMBER } from '../../config/constants';
 
 // Fix default icon path (for Leaflet markers served from CDN)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -101,11 +100,36 @@ export const generateSensors = () => {
   return out;
 };
 
-export default function WeatherMap({ stations: propStations = null, focusId = null }) {
+// Simple error boundary to show a friendly placeholder if leaflet fails
+class MapErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(err, info) {
+    // eslint-disable-next-line no-console
+    console.error('Map error', err, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <div className="weather-map__placeholder">Map placeholder</div>;
+    }
+    return this.props.children;
+  }
+}
+
+export default function WeatherMap({ stations: propStations = null, focusId = null, onSelect = null }) {
   const [focusedStation, setFocusedStation] = useState(null);
+  const [mapCreated, setMapCreated] = useState(false);
 
   // internal stations used when parent doesn't provide stations prop
-  const [internalStations, setInternalStations] = useState(() => {
+  const [internalStations] = useState(() => {
     const base = [
       { id: '1051804', name: 'Tigo Goes', lat: 51.8247, lon: 4.4126, location: 0 },
       { id: 'station-2', name: 'Station B', lat: 51.9244, lon: 4.4777, location: 1 },
@@ -194,25 +218,45 @@ export default function WeatherMap({ stations: propStations = null, focusId = nu
     );
   }
 
+  // Basic guard for environments where leaflet can't run
+  const canRenderMap = typeof window !== 'undefined' && !!L && !!MapContainer;
+
+  if (!canRenderMap) {
+    return (
+      <div className="weather-map">
+        <div className="weather-map__placeholder">Map placeholder</div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ position: 'relative' }}>
-      <MapContainer center={NL_CENTER} zoom={NL_ZOOM} className="leaflet-container">
-        <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <div className="weather-map" role="region" aria-label="Weather stations map" style={{ height: '100%', width: '100%' }}>
+      <MapErrorBoundary fallback={<div className="weather-map__placeholder">Map placeholder</div>}>
+        <MapContainer
+          center={NL_CENTER}
+          zoom={NL_ZOOM}
+          className="leaflet-container"
+          style={{ height: '100%', width: '100%' }}
+          whenCreated={() => setMapCreated(true)}
+        >
+          <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {stations.map((s) => (
-          <Marker
-            key={s.id}
-            position={[s.lat, s.lon]}
-            eventHandlers={{
-              click: () => {
-                setFocusedStation({ ...s, sensors: s.sensors, __openAt: Date.now() });
-              },
-            }}
-          />
-        ))}
+          {stations.map((s) => (
+            <Marker
+              key={s.id}
+              position={[s.lat, s.lon]}
+              eventHandlers={{
+                click: () => {
+                  setFocusedStation({ ...s, sensors: s.sensors, __openAt: Date.now() });
+                  if (typeof onSelect === 'function') onSelect(s.id);
+                },
+              }}
+            />
+          ))}
 
-        {focusedStation && <FocusedPopup station={focusedStation} onClose={() => setFocusedStation(null)} />}
-      </MapContainer>
+          {focusedStation && <FocusedPopup station={focusedStation} onClose={() => { setFocusedStation(null); if (typeof onSelect === 'function') onSelect(null); }} />}
+        </MapContainer>
+      </MapErrorBoundary>
     </div>
   );
 }
