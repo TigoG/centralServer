@@ -1,7 +1,7 @@
 
 /* Table styles for Data Table Component */
 .table-container {
-	max-height: 48vh; /* adjust as needed */
+	max-height: 75vh; /* adjust as needed */
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 	border-radius: 8px;
@@ -47,6 +47,11 @@ tbody tr:hover {
 	background: rgba(11, 114, 133, 0.04);
 }
 
+/* clickable row affordance */
+tbody tr {
+	cursor: pointer;
+}
+
 /* Actuator / button styling inside the table */
 table button {
 	background: var(--accent);
@@ -67,3 +72,6 @@ table button:hover {
 	tbody td { padding: 10px; font-size: 13px; }
 }
 
+tbody tr.selected {
+	background: #00377e44;
+}
