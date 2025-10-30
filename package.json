@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "centralServer is a school project for storing and visualizing data from the group's weather stations located across the Netherlands.",
+  "homepage": "https://github.com/tigog/centralserver#readme",
+  "bugs": {
+    "url": "https://github.com/tigog/centralserver/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tigog/centralserver.git"
+  },
+  "license": "ISC",
+  "author": "backend group",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "serve": "node index.js",
+    "test": "nodemon index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
