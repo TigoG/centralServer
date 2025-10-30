@@ -17,7 +17,7 @@
   "scripts": {
     "serve": "node ./dist/index.js",
     "test": "nodemon ./dist/index.js",
-    "dev": "nodemon --ext ts,tsx,json --exec npx tsx src/index.ts"
+    "dev": "nodemon --exec npx tsx src/index.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
