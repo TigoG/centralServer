@@ -128,11 +128,20 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <h1>centralServer — Weather Stations</h1>
+        <p>Smart Things 2025 - Hogescool Rotterdam</p>
       </header>
 
       <div className="app-body">
         <div className="homestation-table">
-          <Table />
+          <Table
+            data={stations}
+            selectedId={focusId}
+            onSelect={(id) => {
+              // toggle focusId to ensure WeatherMap opens popup even if same id
+              setFocusId(null);
+              setTimeout(() => setFocusId(id), 50);
+            }}
+          />
         </div>
 
         <div className="map-and-controls">

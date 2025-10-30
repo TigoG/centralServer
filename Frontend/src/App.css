@@ -14,9 +14,13 @@
 }
 
 .app-header {
-  padding: 1rem;
-  background: #0b7285;
+  padding: 0 4rem ;
+  background-image: linear-gradient(var(--accent) 0%, #00132d 100%);
   color: white;
+  margin-bottom: 4vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .map-wrap {
