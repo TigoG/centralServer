@@ -24,7 +24,9 @@ export default function Header({
         </div>
         <div className="header__logos">
           <div className="header__logo">
-            <img src={wsLogo} alt="Weather Station logo" />
+            <a href="/" title="Home">
+              <img src={wsLogo} alt="Weather Station logo" />
+            </a>
           </div>
           <div className="header__logo">
             <a href="https://www.hogeschoolrotterdam.nl" target="_blank" rel="noopener noreferrer">
