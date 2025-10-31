@@ -6,6 +6,7 @@ import Footer from "../Footer/Footer.jsx";
 import Table from "../Table.jsx";
 import WeatherMap, { generateSensors } from "../WeatherMap/WeatherMap.jsx";
 import WeatherCard from "../WeatherCard/WeatherCard.jsx";
+import SearchBar from "../SearchBar/SearchBar.jsx";
 import { STUDENT_NUMBER, NL_CENTER } from "../../config/constants";
 
 export default function Layout() {
@@ -108,8 +109,10 @@ export default function Layout() {
     setSearchError(null);
   }
 
-  function handleSearch() {
-    const q = (searchQuery || "").trim();
+  // handleSearch optionally accepts a query string; if not provided, it uses
+  // the controlled `searchQuery` state. This lets SearchBar call it directly.
+  function handleSearch(qArg) {
+    const q = (qArg ?? searchQuery ?? "").trim();
     if (!q) {
       setSearchError("Enter an ID to search");
       return;
@@ -130,16 +133,27 @@ export default function Layout() {
   return (
     <div className="app">
       <div className="app-body">
-        <div className="homestation-table" aria-label="Stations list">
-          <section className="weather-list" aria-live="polite">
-            {stations.map((s) => (
-              <WeatherCard
-                key={s.id}
-                station={s}
-                onFocus={() => setFocusId(s.id)}
-              />
-            ))}
-          </section>
+        <div className="stations-area">
+          {/* Search bar above the homestation table */}
+          <SearchBar
+            onSearch={(q) => {
+              // update local controlled input state (optional) and perform search
+              setSearchQuery(q);
+              handleSearch(q);
+            }}
+          />
+
+          <div className="homestation-table" aria-label="Stations list">
+            <section className="weather-list" aria-live="polite">
+              {stations.map((s) => (
+                <WeatherCard
+                  key={s.id}
+                  station={s}
+                  onFocus={() => setFocusId(s.id)}
+                />
+              ))}
+            </section>
+          </div>
         </div>
 
         <div className="map-and-controls">
