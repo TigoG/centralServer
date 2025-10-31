@@ -1,5 +1,5 @@
 .about-page {
-    padding: 2rem;
+    padding: 35px;
 }
 .btn_about {
   background-color: #0b7285;
@@ -19,7 +19,6 @@
   width: 100%;
   border-radius: 10px;
   overflow: hidden;
-  margin-top: 20px;
 }
 
 .slideshow-image {

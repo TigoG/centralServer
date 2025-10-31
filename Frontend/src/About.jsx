@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";  // Added useState and useEffect
+import React, { useState, useEffect } from "react";
 import "./About.css";
-
+import image1 from './assets/test_deisgn-1.png';
+import image2 from './assets/test_design-2.png';
 function About() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const images = [
-    "/assets/hro-logo.svg",
-    "/path/to/image2.jpg",
-    "/path/to/image3.jpg",
-    "/path/to/image4.jpg"
+    image1,
+    image2,   
   ];
 
   useEffect(() => {
@@ -16,13 +15,13 @@ function About() {
       setCurrentImageIndex((prevIndex) => 
         prevIndex === images.length - 1 ? 0 : prevIndex + 1
       );
-    }, 3000);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="dashboard-container" style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+    <div className="dashboard-container" style={{ display: "flex", gap: "50px", alignItems: "flex-start", paddingRight: "50px"}}>
       <div className="about-page" style={{ flex: 1 }}>
         <h2>Welcome to Homestation Dashboard</h2>
         <p>
