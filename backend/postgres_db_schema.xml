@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Postgres Sensor Schema" id="sensor_schema">
+    <mxGraphModel dx="1234" dy="567" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Stations table -->
+        <mxCell id="2" value="stations" style="swimlane;html=1;fillColor=#dae8fc;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="200" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="id : SERIAL PK" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="2">
+          <mxGeometry x="10" y="30" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="4" value="student_number : VARCHAR(50)" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="2">
+          <mxGeometry x="10" y="50" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="5" value="location : VARCHAR(100)" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="2">
+          <mxGeometry x="10" y="70" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" value="latitude : DOUBLE" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="2">
+          <mxGeometry x="10" y="90" width="180" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="7" value="longitude : DOUBLE" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="2">
+          <mxGeometry x="10" y="110" width="180" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Sensor_data table -->
+        <mxCell id="8" value="sensor_data" style="swimlane;html=1;fillColor=#fff2cc;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="100" width="220" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="9" value="id : SERIAL PK" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="30" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="10" value="station_id : INT FK -> stations.id" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="50" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="11" value="sensor_name : VARCHAR(50)" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="70" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" value="value : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="90" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="13" value="uv_value : INT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="110" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="14" value="created_at : TIMESTAMP" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="130" width="200" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Relatie lijn -->
+        <mxCell id="15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;" edge="1" parent="1" source="10" target="2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

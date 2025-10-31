@@ -33,3 +33,11 @@ Quick start (Frontend):
 The Frontend in [`Frontend/`](Frontend/:1) is a small React app that shows station markers on a map of the Netherlands. It is intentionally minimal so everyone can extend it for the project:
 - Map implementation: a simple Leaflet map (OpenStreetMap tiles) or a vector map using react-simple-maps. The repo includes an example component that centers the map on the Netherlands and shows sample station markers.
 - How to configure: set the backend API base URL in `src/config.js` or via environment variables.
+
+## Backend
+- Server code and API to handle sensor data from stations.
+- Stores readings in PostgreSQL database.
+- Provides REST endpoints for retrieving station and sensor information.
+- Database schema for reference:
+- ![Postgres DB Schema](postgres_db_schema.png)
+- [Draw.io XML File](postgres_db_schema.xml)
