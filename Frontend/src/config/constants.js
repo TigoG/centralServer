@@ -1,5 +1,5 @@
 // constants.js
-export const STUDENT_NUMBER = '12345678';
+export const STUDENT_NUMBER = '';
 export const DEFAULT_SENSOR = 'temperature';
 
 export const SENSOR_TYPES = [
