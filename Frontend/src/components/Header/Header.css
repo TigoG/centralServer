@@ -8,8 +8,8 @@
   width: 92%;
   margin: 0 auto;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1.2%;
 }
 
 .header__brand {
@@ -34,17 +34,28 @@
   font-weight: 500;
 }
 
-.header__links {
+.header__logos {
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  gap: 20px; /* space between logos */
 }
 
-.header__links a {
-  text-decoration: none;
-  font-weight: 500;
+.header__logo img {
+  height: 60px;
+  width: auto;
 }
 
-.header__links a:hover {
-  text-decoration: underline;
-  font-weight: 700;
+/* Responsive logo scaling */
+@media (max-width: 800px) {
+  .header__logo img {
+    height: 50px;
+  }
+
+  .header__title {
+    font-size: 1.2rem;
+  }
+
+  .header__subtitle {
+    font-size: 0.85rem;
+  }
 }
