@@ -135,11 +135,7 @@ export default function Controls({
             </div>
           )}
 
-          {searchError && (
-            <div className="controls__error" role="alert">
-              {searchError}
-            </div>
-          )}
+          {/* search errors are shown under the SearchBar in Layout */}
         </div>
       </div>
     </div>
