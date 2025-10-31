@@ -18,17 +18,6 @@ export default function Controls({
 
   return (
     <div className="controls">
-      <div className="controls__buttons" role="group" aria-label="Controls">
-        {/* Search is always visible; no toggle button */}
-        <button
-          type="button"
-          className="controls__btn controls__btn--secondary"
-          aria-pressed={showAddForm}
-          onClick={onToggleAdd}
-        >
-          {showAddForm ? "Close" : "Add weatherstation"}
-        </button>
-      </div>
 
       <div
         className={`controls__folddown ${
@@ -135,11 +124,7 @@ export default function Controls({
             </div>
           )}
 
-          {searchError && (
-            <div className="controls__error" role="alert">
-              {searchError}
-            </div>
-          )}
+          {/* search errors are shown under the SearchBar in Layout */}
         </div>
       </div>
     </div>

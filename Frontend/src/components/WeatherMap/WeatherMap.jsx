@@ -204,9 +204,9 @@ export default function WeatherMap({ stations: propStations = null, focusId = nu
                 <ul style={{ paddingLeft: 16, marginTop: 4 }}>
                   {optionalEntries.map(([k, v]) => (
                     <li key={k} style={{ marginBottom: 8 }}>
-                      <a style={linkStyle} href={`/homestations/${STUDENT_NUMBER}/${station.location}/${k}`} target="_blank" rel="noopener noreferrer">
-                        <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{k}</span>: <span style={{ color: '#0f172a' }}>{formatSensorValue(k, v)}</span>
-                      </a>
+                      <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{k}</span>
+                      <span>: </span>
+                      <span style={{ color: '#0f172a' }}> {formatSensorValue(k, v)}</span>
                     </li>
                   ))}
                 </ul>
