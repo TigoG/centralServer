@@ -22,7 +22,7 @@ export default function Model({
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" onClick={closeModal}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Voer uw gegevens in om een weerstation toe te voegen</h2>
+        <h2>Add Weather Station</h2>
 
         <div className="modal-form">
 
@@ -34,19 +34,19 @@ export default function Model({
                 id="modal-add-id"
                 className="controls-input"
                 type="text"
-                placeholder="Leerlingnummer"
+                placeholder="Student Number"
                 value={addForm.id}
                 onChange={(e) => setAddForm((f) => ({ ...f, id: e.target.value }))}
               />
             </div>
 
             <div className="input-group">
-              <label htmlFor="modal-add-name" className="input-label">Naam</label>
+              <label htmlFor="modal-add-name" className="input-label">Name</label>
               <input
                 id="modal-add-name"
                 className="controls-input"
                 type="text"
-                placeholder="Bijv. Tuin John Doe"
+                placeholder="Example: Garden John"
                 value={addForm.name}
                 onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))}
               />
@@ -56,26 +56,26 @@ export default function Model({
           {/* Latitude + Longitude */}
           <div className="input-row">
             <div className="input-group">
-              <label htmlFor="modal-add-lat" className="input-label">📍 Breedtegraad (Lat)</label>
+              <label htmlFor="modal-add-lat" className="input-label">📍 Latitude (Lat)</label>
               <input
                 id="modal-add-lat"
                 className="controls-input"
                 type="number"
                 step="any"
-                placeholder="Bijv. 52.3702"
+                placeholder="Example: 52.3702"
                 value={addForm.lat}
                 onChange={(e) => setAddForm((f) => ({ ...f, lat: e.target.value }))}
               />
             </div>
 
             <div className="input-group">
-              <label htmlFor="modal-add-lon" className="input-label">📍 Lengtegraad (Lon)</label>
+              <label htmlFor="modal-add-lon" className="input-label">📍 Longitude (Lon)</label>
               <input
                 id="modal-add-lon"
                 className="controls-input"
                 type="number"
                 step="any"
-                placeholder="Bijv. 4.8952"
+                placeholder="Example: 4.8952"
                 value={addForm.lon}
                 onChange={(e) => setAddForm((f) => ({ ...f, lon: e.target.value }))}
               />
@@ -84,15 +84,15 @@ export default function Model({
 
           {/* Location dropdown */}
           <div className="input-group" style={{ marginBottom: '8px' }}>
-            <label htmlFor="modal-add-location" className="input-label">Locatie</label>
+            <label htmlFor="modal-add-location" className="input-label">Location</label>
             <select
               id="modal-add-location"
               className="controls-input"
               value={addForm.location}
               onChange={(e) => setAddForm((f) => ({ ...f, location: e.target.value }))}
             >
-              <option value="0">Binnen</option>
-              <option value="1">Buiten</option>
+              <option value="0">Inside</option>
+              <option value="1">Outside</option>
             </select>
           </div>
         </div>
@@ -102,8 +102,8 @@ export default function Model({
 
         {/* Actions */}
         <div className="modal-actions">
-          <button type="button" className="controls__btn" onClick={closeModal}>Afbreken</button>
-          <button type="button" className="controls__btn controls__btn--primary" onClick={addStation}>Toevoegen</button>
+          <button type="button" className="controls__btn" onClick={closeModal}>Cancel</button>
+          <button type="button" className="controls__btn controls__btn--primary" onClick={addStation}>Add</button>
         </div>
       </div>
     </div>
