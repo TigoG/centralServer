@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from 'dotenv';
+import pool from './config/db';
+import router from "./routes/templateUserRouter";
 const app = express();
 const PORT = 8445;
 
@@ -13,8 +15,5 @@ app.listen (
     () => console.log(`It's alive on http://localhost:${PORT}`)
 )
 
-
-app.get('/ping' ,(req,res) => {
-    return res.status(200).send("Listining");
-})
+app.use('', router);
 
