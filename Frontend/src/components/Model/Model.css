@@ -1,0 +1,83 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  width: 100%;
+  max-width: 450px;
+}
+
+.modal h2 {
+  font-size: 1.2em;
+  margin-bottom: 16px;
+  color: #00377e;
+}
+
+/* Form layout */
+.input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.input-label {
+  font-size: 0.9em;
+  margin-bottom: 2px;
+  color: #333;
+}
+
+/* Inputs */
+.controls-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.controls-input:focus {
+  outline: none;
+  border-color: #0077ff;
+}
+
+/* Error message */
+.form-error {
+  color: red;
+  font-size: 0.9em;
+  margin-top: 8px;
+}
+
+/* Buttons */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.controls__btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.controls__btn--primary {
+  background-color: #00377e;
+  color: #fff;
+}

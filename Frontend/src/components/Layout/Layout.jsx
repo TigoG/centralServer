@@ -5,6 +5,7 @@ import Controls from '../Controls/Controls.jsx';
 import Table from '../Table.jsx';
 import WeatherMap, { generateSensors } from '../WeatherMap/WeatherMap.jsx';
 import WeatherCard from '../WeatherCard/WeatherCard.jsx';
+import Model from '../Model/Model.jsx';
 import { STUDENT_NUMBER, NL_CENTER } from '../../config/constants';
 
 export default function Layout() {
@@ -23,6 +24,7 @@ export default function Layout() {
   const [focusId, setFocusId] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     id: STUDENT_NUMBER,
     name: '',
@@ -40,9 +42,8 @@ export default function Layout() {
     const lon = Number(addForm.lon);
     const location = Number(addForm.location) === 0 ? 0 : 1;
 
-    if (!id) { setSearchError('ID is required'); return; }
-    if (Number.isNaN(lat) || Number.isNaN(lon)) { setSearchError('Latitude and longitude must be numbers'); return; }
-    if (stations.some((s) => s.id === id)) { setSearchError('Station ID already exists'); return; }
+    if (!id) { setSearchError('Voer een ID in'); return; }
+    if (Number.isNaN(lat) || Number.isNaN(lon)) { setSearchError('Latitude en longitude moeten nummers zijn'); return; }
 
     const newStation = { id, name, lat, lon, location, sensors: generateSensors() };
     setStations((prev) => [...prev, newStation]);
@@ -52,6 +53,7 @@ export default function Layout() {
     setTimeout(() => setFocusId(id), 50);
 
     setShowAddForm(false);
+    setShowAddModal(false);
     setSearchError(null);
   }
 
@@ -77,6 +79,16 @@ export default function Layout() {
               <WeatherCard key={s.id} station={s} onFocus={() => setFocusId(s.id)} />
             ))}
           </section>
+
+          {/* Floating add button at bottom-left of the stations list */}
+          <button
+            type="button"
+            className="add-station-fab"
+            onClick={() => { setShowAddModal(true); setShowAddForm(false); setSearchError(null); }}
+            aria-label="Add station"
+          >
+            + Add Station
+          </button>
         </div>
 
         <div className="map-and-controls">
@@ -86,6 +98,7 @@ export default function Layout() {
               setShowSearch={setShowSearch}
               showAddForm={showAddForm}
               setShowAddForm={setShowAddForm}
+              showAddModal={showAddModal}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               searchError={searchError}
@@ -102,6 +115,18 @@ export default function Layout() {
           </main>
         </div>
       </div>
+
+      {/* Centered modal overlay for adding a station */}
+      <Model
+        show={showAddModal}
+        setShow={setShowAddModal}
+        setShowAddForm={setShowAddForm}
+        addForm={addForm}
+        setAddForm={setAddForm}
+        addStation={addStation}
+        searchError={searchError}
+        setSearchError={setSearchError}
+      />
     </div>
   );
 }
