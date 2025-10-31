@@ -8,12 +8,24 @@ export default function WeatherCard({ station = {}, onFocus = () => {} }) {
     typeof tempVal === "number" && tempVal !== -1
       ? `${tempVal.toFixed(1)} °C`
       : "—";
-  const description = (() => {
-    if (typeof tempVal !== "number" || tempVal === -1) return "No data";
-    if (tempVal >= 25) return "Sunny";
-    if (tempVal >= 18) return "Partly cloudy";
-    return "Cool";
-  })();
+
+  const getWeatherInfo = (temp) => {
+    if (typeof temp !== "number" || temp === -1) {
+      return { icon: "❓", description: "No data" };
+    }
+    if (temp >= 21) {
+      return { icon: "☀️", description: "Sunny" };
+    }
+    if (temp >= 16) {
+      return { icon: "⛅", description: "Partly cloudy" };
+    }
+    if (temp >= 10) {
+      return { icon: "☁️", description: "Cool" };
+    }
+    return { icon: "❄️", description: "Cold" };
+  };
+
+  const { icon, description } = getWeatherInfo(tempVal);
 
   return (
     <article
@@ -23,7 +35,7 @@ export default function WeatherCard({ station = {}, onFocus = () => {} }) {
     >
       <div className="weather-card__left">
         <div className="weather-card__icon" aria-hidden="true">
-          ☁️
+          {icon}
         </div>
       </div>
 
