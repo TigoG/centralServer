@@ -163,10 +163,6 @@ export default function Layout() {
           <main className="map-wrap">
             <WeatherMap stations={stations} focusId={focusId} />
           </main>
-
-          <footer className="app_footer">
-            <Footer />
-          </footer>
         </div>
       </div>
 
