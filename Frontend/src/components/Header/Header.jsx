@@ -4,7 +4,7 @@ import hroLogo from '../../assets/hro-logo.svg';
 import wsLogo from '../../assets/logo-ws.svg';  // renamed import
 
 export default function Header({
-  title = "centralServer",
+  title = "CentralServer",
   subtitle = "Weather Stations Dashboard",
 }) {
   return (
