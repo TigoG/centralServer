@@ -22,7 +22,9 @@ export default function Header({
           </div>
         </div>
         <div className="header__logo">
-          <img src={hroLogo} alt="Hogeschool Rotterdam logo" />
+          <a href="https://www.hogeschoolrotterdam.nl" target="_blank" rel="noopener noreferrer">
+            <img src={hroLogo} alt="Hogeschool Rotterdam logo" />
+          </a>
         </div>
       </div>
     </header>
