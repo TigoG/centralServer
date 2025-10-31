@@ -55,7 +55,7 @@
 .weather-card__temp {
   font-weight: 800;
   font-size: 16px;
-  color: #0b7285;
+  color: #00377e;
 }
 
 .weather-card__buttons {
@@ -71,7 +71,7 @@
   border-radius: 10px;
   cursor: pointer;
   font-weight: 700;
-  color: #0b7285;
+  color: #00377e;
   box-shadow: 1px 2px 4px #0002;
 }
 
