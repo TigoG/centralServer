@@ -18,6 +18,9 @@ export default function Header({
           <a href="/" className="header__link">
             Home
           </a>
+          <a href="/history" className="header__link">
+            Hisory
+          </a>
           <a href="/about" className="header__link">
             About
           </a>
