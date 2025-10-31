@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './Layout.css';
 import Header from '../Header/Header.jsx';
 import Controls from '../Controls/Controls.jsx';
+import Footer from '../Footer/Footer.jsx';
 import Table from '../Table.jsx';
 import WeatherMap, { generateSensors } from '../WeatherMap/WeatherMap.jsx';
 import WeatherCard from '../WeatherCard/WeatherCard.jsx';
@@ -100,6 +101,10 @@ export default function Layout() {
           <main className="map-wrap">
             <WeatherMap stations={stations} focusId={focusId} />
           </main>
+
+          <footer className="app_footer">
+            <Footer></Footer>
+          </footer>
         </div>
       </div>
     </div>
