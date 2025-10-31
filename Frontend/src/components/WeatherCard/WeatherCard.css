@@ -58,16 +58,24 @@
   color: #0b7285;
 }
 
+.weather-card__buttons {
+  display: flex;
+  gap: 0.9rem;
+}
+
 .weather-card__btn {
+  margin: 5px 0;
   background: #eef2f7;
   border: none;
-  padding: 0.6% 0.8%;
-  border-radius: 0.8%;
+  padding: 4px 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 700;
   color: #0b7285;
+  box-shadow: 1px 2px 4px #0002;
 }
 
 .weather-card__btn:hover {
   opacity: 0.95;
+  box-shadow: 0 2px 4px #0000;
 }

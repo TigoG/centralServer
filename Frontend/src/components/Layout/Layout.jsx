@@ -108,6 +108,16 @@ export default function Layout() {
               handleSearch(q);
             }}
           />
+          {/* show search errors directly under the search bar */}
+          {searchError && (
+            <div
+              className="form-error"
+              role="alert"
+              style={{ margin: "8px 0" }}
+            >
+              {searchError}
+            </div>
+          )}
 
           <div className="homestation-table" aria-label="Stations list">
             <section className="weather-list" aria-live="polite">
