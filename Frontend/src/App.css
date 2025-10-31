@@ -52,13 +52,6 @@ html, body, #root {
   box-sizing: border-box;
 }
 
-/* Controls area above the map */
-.controls-area {
-  height: 18%;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .controls-buttons {
   width: 92%;
   margin: 0 auto;
