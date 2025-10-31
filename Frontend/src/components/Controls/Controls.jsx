@@ -19,13 +19,7 @@ export default function Controls({
   return (
     <div className="controls">
 
-      <div
-        className={`controls__folddown ${
-          /* always show search; add form still toggles */
-          true || showAddForm ? "controls__folddown--open" : ""
-        }`}
-        aria-hidden={false}
-      >
+      <div>
         <div className="controls__folddown-inner">
           {/* search moved to Layout; only add-form remains here */}
 
