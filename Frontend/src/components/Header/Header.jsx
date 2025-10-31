@@ -1,6 +1,7 @@
 import React from "react";
 import "./Header.css";
 import hroLogo from '../../assets/hro-logo.svg';
+import wsLogo from '../../assets/logo-ws.svg';  // renamed import
 
 export default function Header({
   title = "centralServer",
@@ -21,10 +22,15 @@ export default function Header({
             </a>
           </div>
         </div>
-        <div className="header__logo">
-          <a href="https://www.hogeschoolrotterdam.nl" target="_blank" rel="noopener noreferrer">
-            <img src={hroLogo} alt="Hogeschool Rotterdam logo" />
-          </a>
+        <div className="header__logos">
+          <div className="header__logo">
+            <img src={wsLogo} alt="Weather Station logo" />
+          </div>
+          <div className="header__logo">
+            <a href="https://www.hogeschoolrotterdam.nl" target="_blank" rel="noopener noreferrer">
+              <img src={hroLogo} alt="Hogeschool Rotterdam logo" />
+            </a>
+          </div>
         </div>
       </div>
     </header>

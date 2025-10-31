@@ -34,6 +34,12 @@
   font-weight: 500;
 }
 
+.header__logos {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* space between logos */
+}
+
 .header__logo img {
   height: 40px;
   width: auto;
