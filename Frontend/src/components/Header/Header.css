@@ -15,6 +15,8 @@
 .header__brand {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .header__title {
@@ -30,4 +32,19 @@
   font-size: 0.95rem;
   color: #475569;
   font-weight: 500;
+}
+
+.header__links {
+  display: flex;
+  gap: 1rem;
+}
+
+.header__links a {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.header__links a:hover {
+  text-decoration: underline;
+  font-weight: 700;
 }
