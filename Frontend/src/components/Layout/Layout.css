@@ -42,11 +42,6 @@
   padding: 0.6%;
 }
 
-.controls-area {
-  height: 18%;
-  width: 100%;
-  box-sizing: border-box;
-}
 
 .map-wrap {
   padding: 1%;
@@ -83,9 +78,6 @@
   box-sizing: border-box;
 }
     height: 65%;
-  }
-  .controls-area {
-    height: 20%;
   }
   .map-wrap {
     height: 80%;
