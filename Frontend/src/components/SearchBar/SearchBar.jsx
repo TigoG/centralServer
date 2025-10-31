@@ -14,17 +14,17 @@ export default function SearchBar({ onSearch }) {
       className="search-bar"
       onSubmit={handleSubmit}
       role="search"
-      aria-label="Search stations by ID"
+      aria-label="Search stations"
     >
       <div className="search-bar__inner">
         <input
           id="search-input"
           className="search-bar__input"
           type="text"
-          placeholder="Search by station ID"
+          placeholder="Search stations"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Station ID"
+          aria-label="Station"
         />
         <button type="submit" className="search-bar__btn">
           Search

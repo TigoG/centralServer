@@ -114,14 +114,18 @@ export default function Layout() {
   function handleSearch(qArg) {
     const q = (qArg ?? searchQuery ?? "").trim();
     if (!q) {
-      setSearchError("Enter an ID to search");
+      setSearchError("Enter something to search");
       return;
     }
     const found =
       stations.find((s) => s.id === q) ||
-      stations.find((s) => s.id.includes(q) || q.includes(s.id));
+      stations.find((s) => s.id.includes(q) || q.includes(s.id)) ||
+      stations.find((s) => s.name === q) ||
+      stations.find((s) => s.name.includes(q) || q.includes(s.name)) ||
+      stations.find((s) => s.location === q) ||
+      stations.find((s) => s.location.includes(q) || q.includes(s.location));
     if (!found) {
-      setSearchError("No station found for that ID");
+      setSearchError("No station found for '" + q + "'");
       return;
     }
 
