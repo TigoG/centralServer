@@ -1,7 +1,7 @@
 import React from "react";
 import "./Header.css";
 import hroLogo from "../../assets/hro-logo.svg";
-import wsLogo from "../../assets/logo-ws.svg"; // renamed import
+import wsLogo from "../../assets/logo-ws-wit.svg";
 
 export default function Header({
   title = "CentralServer",
