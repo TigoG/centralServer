@@ -1,7 +1,7 @@
 import React from "react";
 import "./Header.css";
-import hroLogo from '../../assets/hro-logo.svg';
-import wsLogo from '../../assets/logo-ws.svg';  // renamed import
+import hroLogo from "../../assets/hro-logo.svg";
+import wsLogo from "../../assets/logo-ws.svg"; // renamed import
 
 export default function Header({
   title = "CentralServer",
@@ -11,16 +11,16 @@ export default function Header({
     <header className="header" role="banner">
       <div className="header__inner">
         <div className="header__brand">
-          <h1 className="header__title">{title}</h1>
+          <h1 className="header__title">{title.toLocaleUpperCase()}</h1>
           <p className="header__subtitle">{subtitle}</p>
-          <div className="header__links">
-            <a href="/" className="header__link">
-              Home
-            </a>
-            <a href="/about" className="header__link">
-              About
-            </a>
-          </div>
+        </div>
+        <div className="header__links">
+          <a href="/" className="header__link">
+            Home
+          </a>
+          <a href="/about" className="header__link">
+            About
+          </a>
         </div>
         <div className="header__logos">
           <div className="header__logo">
@@ -29,7 +29,11 @@ export default function Header({
             </a>
           </div>
           <div className="header__logo">
-            <a href="https://www.hogeschoolrotterdam.nl" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://www.hogeschoolrotterdam.nl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <img src={hroLogo} alt="Hogeschool Rotterdam logo" />
             </a>
           </div>

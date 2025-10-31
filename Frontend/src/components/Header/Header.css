@@ -1,7 +1,9 @@
 /* Header.css - responsive header heights and percent-based spacing */
 .header {
-  height: 12%;
+  height: 6%;
   padding: 1% 1%;
+  margin-bottom: 4vh;
+  background-image: linear-gradient(0deg, #001223 0%, #00377e 100%);
 }
 
 .header__inner {
@@ -14,23 +16,24 @@
 
 .header__brand {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 }
 
 .header__title {
   margin: 0;
   font-size: 1.45rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #f0f0f9;
 }
 
 .header__subtitle {
   margin: 0;
   margin-top: 0.4%;
   font-size: 0.95rem;
-  color: #475569;
+  color: #e0e0e9;
   font-weight: 500;
 }
 
@@ -41,8 +44,23 @@
 }
 
 .header__logo img {
-  height: 60px;
+  height: 40px;
   width: auto;
+}
+
+.header__links {
+  display: flex;
+  gap: 16px;
+}
+
+.header__links a {
+  color: #e0e0e9;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.header__links a:hover {
+  text-decoration: underline;
 }
 
 /* Responsive logo scaling */
