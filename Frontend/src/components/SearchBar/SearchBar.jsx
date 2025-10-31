@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import './SearchBar.css';
+import React, { useState } from "react";
+import "./SearchBar.css";
 
 export default function SearchBar({ onSearch }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -10,8 +10,12 @@ export default function SearchBar({ onSearch }) {
   }
 
   return (
-    <form className="search-bar" onSubmit={handleSubmit} role="search" aria-label="Search stations by ID">
-      <label htmlFor="search-input" className="search-bar__label visually-hidden">Search stations by ID</label>
+    <form
+      className="search-bar"
+      onSubmit={handleSubmit}
+      role="search"
+      aria-label="Search stations by ID"
+    >
       <div className="search-bar__inner">
         <input
           id="search-input"
@@ -22,7 +26,9 @@ export default function SearchBar({ onSearch }) {
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Station ID"
         />
-        <button type="submit" className="search-bar__btn">Search</button>
+        <button type="submit" className="search-bar__btn">
+          Search
+        </button>
       </div>
     </form>
   );
