@@ -38,7 +38,7 @@ const MQTTComponent = (props) => {
             if (props.onMessage) {
         props.onMessage(topic, payload.toString());
       }
-      setValue(payload.toString());
+      //setValue(payload.toString());
     });
 
     newClient.on('error', (err) => {

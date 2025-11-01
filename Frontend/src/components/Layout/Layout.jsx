@@ -105,29 +105,40 @@ export default function Layout() {
   const [mqttData, setMqttData] = useState(null);
 
   // 2. Callback to handle MQTT messages
+  // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
   function handleMqttMessage(topic, payload) {
-    console.log('MQTT:', topic, payload);
-    // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
-    const parts = topic.split('/');
-    if (parts.length < 3) return;
+    console.log('MQTT raw:', topic, payload);
 
-    const stationId = parts[0];
-    const location = Number(parts[1]);
-    const sensorType = parts[2];
-    const value = Number(payload);
-
-    if (!isNaN(value)) {
-      // Create sensor value object based on sensor type
-      const sensorValues = {
-        [sensorType.toLowerCase()]: value
-      };
-
-      setMqttData({
-        stationId,
-        location,
-        value: sensorValues
-      });
+    const parts = String(topic).split('/');
+    // find the "homestations" segment and parse after it
+    const hsIndex = parts.findIndex((p) => p.toLowerCase() === 'homestations');
+    if (hsIndex === -1 || parts.length <= hsIndex + 4) {
+      console.warn('MQTT topic does not contain expected homestations/... path:', topic);
+      return;
     }
+
+    const stationId = parts[hsIndex + 1];
+    const location = Number(parts[hsIndex + 2]);
+    const sensorType = parts[hsIndex + 3];
+    // topic may carry the value as last segment or payload may contain the numeric value
+    let value = parts[hsIndex + 4];
+    if (value === '' || value == null || isNaN(Number(value))) {
+      // try payload as numeric value fallback
+      const pv = Number(String(payload));
+      if (!isNaN(pv)) value = pv;
+    } else {
+      value = Number(value);
+    }
+
+    console.log('Parsed MQTT Data - stationId:', stationId, 'location:', location, 'sensorType:', sensorType, 'value:', value);
+
+    if (!stationId || isNaN(location) || isNaN(Number(value))) {
+      console.warn('Invalid parsed MQTT values:', { stationId, location, value });
+      return;
+    }
+
+    const sensorValues = { [sensorType.toLowerCase()]: Number(value) };
+    setMqttData({ stationId: String(stationId), location: Number(location), value: sensorValues });
   }
 
   // // Periodically regenerate sensors and update tick so popups show live sensor values.
@@ -142,7 +153,7 @@ export default function Layout() {
   //   return () => clearInterval(id);
   // }, []);
 
-  // Replace the existing useEffect with this new one
+  //Replace the existing useEffect with this new one
   useEffect(() => {
     if (mqttData) {
       const { stationId, location, value } = mqttData;
@@ -161,14 +172,13 @@ export default function Layout() {
           return station;
         })
       );
-      setTick(Date.now());
     }
-  }, [mqttData]); // This effect runs whenever mqttData changes
+  }, [mqttData]);
 
   return (
     <div className="app">
       <div className="app-body">
-        {/* <MQTTModule onMessage={handleMqttMessage} /> */}
+        
         <div className="stations-area">
           <SearchBar
             onSearch={(q) => {
@@ -244,6 +254,8 @@ export default function Layout() {
         searchError={searchError}
         setSearchError={setSearchError}
       />
+      <MQTTModule onMessage={handleMqttMessage} />
     </div>
+    
   );
 }
