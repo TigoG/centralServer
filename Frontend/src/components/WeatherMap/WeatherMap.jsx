@@ -124,7 +124,7 @@ class MapErrorBoundary extends React.Component {
   }
 }
 
-export default function WeatherMap({ stations: propStations = null, focusId = null, onSelect = null }) {
+function WeatherMap({ stations: propStations = null, focusId = null, onSelect = null }) {
   const [focusedStation, setFocusedStation] = useState(null);
   const [mapCreated, setMapCreated] = useState(false);
 
@@ -143,25 +143,29 @@ export default function WeatherMap({ stations: propStations = null, focusId = nu
 
   const stations = propStations ?? internalStations;
 
-  // If parent wants to focus a station, open its popup
+  // If parent wants to focus a station, open its popup (store only id; popup will reference live station data)
   useEffect(() => {
     if (!focusId) return;
     const found = stations.find((s) => s.id === focusId || s.id.includes(focusId) || focusId.includes(s.id));
-    if (found) setFocusedStation({ ...found, __openAt: Date.now() });
-  }, [focusId, stations]);
+    if (found) setFocusedStation({ id: found.id, __openAt: Date.now() });
+  }, [focusId]);
 
   function FocusedPopup({ station, onClose }) {
     const map = useMap();
 
     useEffect(() => {
       if (!station) return;
-      map.panTo([station.lat, station.lon], { animate: true });
-    }, [station, map]);
+      const live = stations.find((s) => s.id === station.id) || station;
+      map.panTo([live.lat, live.lon], { animate: true });
+    }, [station, map, stations]);
 
     if (!station) return null;
 
-    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, station.sensors?.[k]]);
-    const optionalEntries = Object.entries(station.sensors || {}).filter(
+    // read the live station object from the current stations array so sensors update while popup is open
+    const live = stations.find((s) => s.id === station.id) || station;
+
+    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, live.sensors?.[k]]);
+    const optionalEntries = Object.entries(live.sensors || {}).filter(
       ([k, v]) => !REQUIRED_SENSORS.includes(k) && v !== -1 && v !== null && v !== undefined
     );
 
@@ -171,13 +175,13 @@ export default function WeatherMap({ stations: propStations = null, focusId = nu
     const linkStyle = { color: '#0b7285', textDecoration: 'none' };
 
     return (
-      <Popup key={station.__openAt || station.id} position={[station.lat, station.lon]} onClose={onClose} closeButton>
+      <Popup key={station.__openAt || station.id} position={[live.lat, live.lon]} onClose={onClose} closeButton>
         <div style={{ minWidth: 300, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
           <div style={headerStyle}>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>{station.name}</div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>{live.name}</div>
               <div style={{ fontSize: 12, color: '#475569' }}>
-                ID: {station.id} • {station.location === 0 ? 'Binnen' : 'Buiten'}
+                ID: {live.id} • {live.location === 0 ? 'Binnen' : 'Buiten'}
               </div>
             </div>
             <div>
@@ -247,7 +251,8 @@ export default function WeatherMap({ stations: propStations = null, focusId = nu
               position={[s.lat, s.lon]}
               eventHandlers={{
                 click: () => {
-                  setFocusedStation({ ...s, sensors: s.sensors, __openAt: Date.now() });
+                  // only store id+open timestamp here; popup will read live sensors from `stations`
+                  setFocusedStation({ id: s.id, __openAt: Date.now() });
                   if (typeof onSelect === 'function') onSelect(s.id);
                 },
               }}
@@ -260,3 +265,7 @@ export default function WeatherMap({ stations: propStations = null, focusId = nu
     </div>
   );
 }
+ 
+// Memoize the WeatherMap so UI-only ticks in the parent don't force re-renders.
+// This prevents the map/popups from "flashing" when Layout updates its tick.
+export default React.memo(WeatherMap);

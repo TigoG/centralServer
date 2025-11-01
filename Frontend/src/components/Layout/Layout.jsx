@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Layout.css";
 import Controls from "../Controls/Controls.jsx";
 import Footer from "../Footer/Footer.jsx";
@@ -34,6 +34,7 @@ export default function Layout() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [searchError, setSearchError] = useState(null);
+  const [tick, setTick] = useState(Date.now());
 
   function addStation() {
     const id = (addForm.id || "").trim();
@@ -98,6 +99,18 @@ export default function Layout() {
     setSearchError(null);
   }
 
+  // Periodically regenerate sensors and update tick so popups show live sensor values.
+  // Adjust intervalMs (milliseconds) as desired.
+  useEffect(() => {
+    const intervalMs = 1000; // update every 5 seconds
+    const id = setInterval(() => {
+      setStations((prev) => prev.map((s) => ({ ...s, sensors: generateSensors() })));
+      setTick(Date.now());
+    }, intervalMs);
+  
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div className="app">
       <div className="app-body">
@@ -122,7 +135,7 @@ export default function Layout() {
           <div className="homestation-table" aria-label="Stations list">
             <section className="weather-list" aria-live="polite">
               {stations.map((s) => (
-                <WeatherCard key={s.id} station={s} onFocus={() => setFocusId(s.id)} />
+                <WeatherCard key={s.id} station={s} onFocus={() => setFocusId(s.id)} tick={tick} />
               ))}
             </section>
 
