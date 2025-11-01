@@ -109,57 +109,66 @@ export default function Layout() {
     console.log('MQTT:', topic, payload);
     // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
     const parts = topic.split('/');
-    if (parts.length < 6) return;
+    if (parts.length < 3) return;
 
-    const stationId = parts[2];
-    const location = Number(parts[3]);
-    const sensorsKeyword = parts[4];
-    const valueKeyword = parts[5];
+    const stationId = parts[0];
+    const location = Number(parts[1]);
+    const sensorType = parts[2];
+    const value = Number(payload);
 
-    let value;
-    try {
-      value = JSON.parse(payload);
-    } catch {
-      value = payload;
+    if (!isNaN(value)) {
+      // Create sensor value object based on sensor type
+      const sensorValues = {
+        [sensorType.toLowerCase()]: value
+      };
+
+      setMqttData({
+        stationId,
+        location,
+        value: sensorValues
+      });
     }
+  }
 
-    setStations((prevStations) =>
-      prevStations.map((station) => {
-        // Match both id and location!
-        if (station.id === stationId && station.location === location) {
-          if (sensorsKeyword === 'sensors' && valueKeyword === 'value' && typeof value === 'object') {
+  // // Periodically regenerate sensors and update tick so popups show live sensor values.
+  // // Adjust intervalMs (milliseconds) as desired.
+  // useEffect(() => {
+  //   const intervalMs = 1000; // update every 5 seconds
+  //   const id = setInterval(() => {
+  //     setStations((prev) => prev.map((s) => ({ ...s, sensors: generateSensors() })));
+  //     setTick(Date.now());
+  //   }, intervalMs);
+  
+  //   return () => clearInterval(id);
+  // }, []);
+
+  // Replace the existing useEffect with this new one
+  useEffect(() => {
+    if (mqttData) {
+      const { stationId, location, value } = mqttData;
+      console.log('Updating station:', stationId, 'Location:', location, 'Value:', value);
+      setStations(prevStations => 
+        prevStations.map(station => {
+          if (station.id === stationId && station.location === location) {
             return {
               ...station,
               sensors: {
                 ...station.sensors,
-                ...value,
-              },
-              location,
+                ...value
+              }
             };
           }
-        }
-        return station;
-      })
-    );
-
-    setMqttData({ stationId, location, sensorsKeyword, valueKeyword, value });
-  }
-
-  // Periodically regenerate sensors and update tick so popups show live sensor values.
-  // Adjust intervalMs (milliseconds) as desired.
-  useEffect(() => {
-    const intervalMs = 1000; // update every 5 seconds
-    const id = setInterval(() => {
-      setStations((prev) => prev.map((s) => ({ ...s, sensors: generateSensors() })));
+          return station;
+        })
+      );
       setTick(Date.now());
-    }, intervalMs);
-  
-    return () => clearInterval(id);
-  }, []);
+    }
+  }, [mqttData]); // This effect runs whenever mqttData changes
 
   return (
     <div className="app">
       <div className="app-body">
+        {/* <MQTTModule onMessage={handleMqttMessage} /> */}
         <div className="stations-area">
           <SearchBar
             onSearch={(q) => {
