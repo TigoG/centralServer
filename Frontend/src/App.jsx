@@ -6,6 +6,7 @@ import About from "./About.jsx";
 import History from "./components/History/History.jsx";
 import Header from "./components/Header/Header.jsx";
 import Footer from "./components/Footer/Footer.jsx";
+import MQTTModule from './components/MQTTModule/MQTTModule';
 export default function App() {
   return (
     <BrowserRouter>
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
       </Routes>
       <Footer/>
+      <MQTTModule />
     </BrowserRouter>
   );
 }

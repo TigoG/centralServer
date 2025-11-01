@@ -7,6 +7,7 @@ import WeatherCard from "../WeatherCard/WeatherCard.jsx";
 import SearchBar from "../SearchBar/SearchBar.jsx";
 import Model from "../Model/Model.jsx";
 import { STUDENT_NUMBER, NL_CENTER } from "../../config/constants";
+import MQTTModule from '../MQTTModule/MQTTModule.jsx';
 
 export default function Layout() {
   const [stations, setStations] = useState(() => {
@@ -97,6 +98,51 @@ export default function Layout() {
     setFocusId(null);
     setTimeout(() => setFocusId(found.id), 50);
     setSearchError(null);
+  }
+
+  
+  // 1. Add state for MQTT data
+  const [mqttData, setMqttData] = useState(null);
+
+  // 2. Callback to handle MQTT messages
+  function handleMqttMessage(topic, payload) {
+    console.log('MQTT:', topic, payload);
+    // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
+    const parts = topic.split('/');
+    if (parts.length < 6) return;
+
+    const stationId = parts[2];
+    const location = Number(parts[3]);
+    const sensorsKeyword = parts[4];
+    const valueKeyword = parts[5];
+
+    let value;
+    try {
+      value = JSON.parse(payload);
+    } catch {
+      value = payload;
+    }
+
+    setStations((prevStations) =>
+      prevStations.map((station) => {
+        // Match both id and location!
+        if (station.id === stationId && station.location === location) {
+          if (sensorsKeyword === 'sensors' && valueKeyword === 'value' && typeof value === 'object') {
+            return {
+              ...station,
+              sensors: {
+                ...station.sensors,
+                ...value,
+              },
+              location,
+            };
+          }
+        }
+        return station;
+      })
+    );
+
+    setMqttData({ stationId, location, sensorsKeyword, valueKeyword, value });
   }
 
   // Periodically regenerate sensors and update tick so popups show live sensor values.
