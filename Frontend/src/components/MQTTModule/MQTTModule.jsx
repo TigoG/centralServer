@@ -7,8 +7,8 @@ const MQTTComponent = (props) => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    // Example broker: test.mosquitto.org (public broker)
-    const brokerUrl = 'wss://test.mosquitto.org:8081'; // Use ws:// or wss:// for browsers
+    // Use WebSocket URL for browser. Replace port if broker's WS port differs.
+    const brokerUrl = 'ws://145.24.237.211:8883';
 
     const options = {
       keepalive: 30,
@@ -18,6 +18,9 @@ const MQTTComponent = (props) => {
       clean: true,
       reconnectPeriod: 1000,
       connectTimeout: 30 * 1000,
+      username: 'minor_smart_things',
+      password: 'smart_things_2025',
+      // rejectUnauthorized is only relevant for wss (TLS). Not needed for ws.
     };
 
     const newClient = mqtt.connect(brokerUrl, options);
