@@ -107,39 +107,37 @@ export default function Layout() {
   // 2. Callback to handle MQTT messages
   // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
   function handleMqttMessage(topic, payload) {
-    console.log('MQTT raw:', topic, payload);
+  console.log('MQTT raw:', topic, payload);
 
-    const parts = String(topic).split('/');
-    // find the "homestations" segment and parse after it
-    const hsIndex = parts.findIndex((p) => p.toLowerCase() === 'homestations');
-    if (hsIndex === -1 || parts.length <= hsIndex + 4) {
-      console.warn('MQTT topic does not contain expected homestations/... path:', topic);
-      return;
-    }
+  const parts = String(topic).split('/');
+  const hsIndex = parts.findIndex((p) => p.toLowerCase() === 'homestations');
 
-    const stationId = parts[hsIndex + 1];
-    const location = Number(parts[hsIndex + 2]);
-    const sensorType = parts[hsIndex + 3];
-    // topic may carry the value as last segment or payload may contain the numeric value
-    let value = parts[hsIndex + 4];
-    if (value === '' || value == null || isNaN(Number(value))) {
-      // try payload as numeric value fallback
-      const pv = Number(String(payload));
-      if (!isNaN(pv)) value = pv;
-    } else {
-      value = Number(value);
-    }
-
-    console.log('Parsed MQTT Data - stationId:', stationId, 'location:', location, 'sensorType:', sensorType, 'value:', value);
-
-    if (!stationId || isNaN(location) || isNaN(Number(value))) {
-      console.warn('Invalid parsed MQTT values:', { stationId, location, value });
-      return;
-    }
-
-    const sensorValues = { [sensorType.toLowerCase()]: Number(value) };
-    setMqttData({ stationId: String(stationId), location: Number(location), value: sensorValues });
+  if (hsIndex === -1 || parts.length <= hsIndex + 3) {
+    console.warn('MQTT topic does not match expected format:', topic);
+    return;
   }
+
+  const stationId = parts[hsIndex + 1];
+  const location = Number(parts[hsIndex + 2]);
+  const sensorType = parts[hsIndex + 3];
+
+  // ✅ Value now always from payload
+  const value = Number(String(payload));
+
+  console.log('Parsed MQTT Data:', { stationId, location, sensorType, value });
+
+  if (!stationId || isNaN(location) || isNaN(value)) {
+    console.warn('Invalid MQTT message:', { stationId, location, value });
+    return;
+  }
+
+  // Apply update
+  setMqttData({
+    stationId: String(stationId),
+    location,
+    value: { [sensorType.toLowerCase()]: value },
+  });
+}
 
   // // Periodically regenerate sensors and update tick so popups show live sensor values.
   // // Adjust intervalMs (milliseconds) as desired.
