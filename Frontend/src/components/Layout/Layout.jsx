@@ -110,32 +110,30 @@ export default function Layout() {
   console.log('MQTT raw:', topic, payload);
 
   const parts = String(topic).split('/');
-  const hsIndex = parts.findIndex((p) => p.toLowerCase() === 'homestations');
 
-  if (hsIndex === -1 || parts.length <= hsIndex + 3) {
-    console.warn('MQTT topic does not match expected format:', topic);
+  // Expect: homestations / stationId / location / sensorType
+  if (parts.length < 4 || parts[0].toLowerCase() !== 'homestations') {
+    console.warn('MQTT topic not recognized:', topic);
     return;
   }
 
-  const stationId = parts[hsIndex + 1];
-  const location = Number(parts[hsIndex + 2]);
-  const sensorType = parts[hsIndex + 3];
+  const stationId  = parts[1];
+  const location   = Number(parts[2]);
+  const sensorType = parts[3].toLowerCase();
 
-  // ✅ Value now always from payload
+  // ✅ Value always from payload
   const value = Number(String(payload));
-
-  console.log('Parsed MQTT Data:', { stationId, location, sensorType, value });
-
-  if (!stationId || isNaN(location) || isNaN(value)) {
-    console.warn('Invalid MQTT message:', { stationId, location, value });
+  if (isNaN(value)) {
+    console.warn('Invalid payload value:', payload);
     return;
   }
 
-  // Apply update
+  console.log('Parsed MQTT:', { stationId, location, sensorType, value });
+
   setMqttData({
-    stationId: String(stationId),
+    stationId,
     location,
-    value: { [sensorType.toLowerCase()]: value },
+    value: { [sensorType]: value }
   });
 }
 
