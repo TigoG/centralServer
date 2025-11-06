@@ -3,6 +3,7 @@
 import express from "express";
 import { getUsers, addUser } from "../controllers/templateUserController";
 import { ping, stationRow } from "../controllers/testController.ts";
+import { getLatestDataRows, getStations } from "../controllers/sensorDataController.ts";
 
 const router = express.Router();
 
@@ -13,6 +14,9 @@ router.get("/getStationRow", stationRow);
 // paths
 router.get("/", getUsers);
 router.post("/", addUser);
+
+router.get("/getLatestDataRows", getLatestDataRows);
+router.get("/getStations", getStations);
 
 
 export default router;
