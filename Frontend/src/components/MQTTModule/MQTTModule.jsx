@@ -8,7 +8,7 @@ const MQTTComponent = (props) => {
 
   useEffect(() => {
     // Use WebSocket URL for browser. Replace port if broker's WS port differs.
-    const brokerUrl = 'ws://145.24.237.211:8883';
+    const brokerUrl = 'ws://145.24.237.211:8080';
 
     const options = {
       keepalive: 30,
