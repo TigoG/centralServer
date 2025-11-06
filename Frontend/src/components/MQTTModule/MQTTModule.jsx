@@ -28,9 +28,9 @@ const MQTTComponent = (props) => {
     newClient.on('connect', () => {
       console.log('Connected to MQTT broker');
       setIsConnected(true);
-      newClient.subscribe('HomestationDemo/homestations/#', (err) => {
+      newClient.subscribe('homestations/#', (err) => {
         if (!err) {
-          console.log('Subscribed to topic: HomestationDemo/homestations/#');
+          console.log('Subscribed to topic: homestations/#');
         }
       });
     });
