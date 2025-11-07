@@ -3,8 +3,13 @@ import dotenv from 'dotenv';
 import cors from "cors";
 import pool from './config/db';
 import router from "./routes/templateUserRouter";
+import initializeMQTT from "./services/mqttService";
+
 const app = express();
 const PORT = 8445;
+
+
+initializeMQTT()
 
 dotenv.config();
 
