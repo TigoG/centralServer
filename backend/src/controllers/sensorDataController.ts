@@ -16,7 +16,7 @@ export const getLatestDataRows = async (req, res) => {
       if (row === null) {
         continue;
       }
-      console.log(row);
+      // console.log(row);
       stationrows.push(row);
     }
 

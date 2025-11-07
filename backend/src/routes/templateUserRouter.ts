@@ -12,8 +12,8 @@ router.get("/ping", ping);
 router.get("/getStationRow", stationRow);
 
 // paths
-router.get("/", getUsers);
-router.post("/", addUser);
+// router.get("/", getUsers);
+// router.post("/", addUser);
 
 router.get("/getLatestDataRows", getLatestDataRows);
 router.get("/getStations", getStations);
