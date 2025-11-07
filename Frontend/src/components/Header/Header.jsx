@@ -19,7 +19,7 @@ export default function Header({
             Home
           </a>
           <a href="/history" className="header__link">
-            Hisory
+            History
           </a>
           <a href="/about" className="header__link">
             About
