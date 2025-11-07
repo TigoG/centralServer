@@ -20,8 +20,10 @@
     "dev": "nodemon --exec npx tsx src/index.ts"
   },
   "dependencies": {
+    "@types/mqtt": "^0.0.34",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "mqtt": "^5.14.1",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3",
     "typescript": "^5.9.3"

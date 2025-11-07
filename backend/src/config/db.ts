@@ -1,19 +1,16 @@
-// Warning: Boiler plate
-
-// import pkg from "pg";
 import dotenv from "dotenv";
-
-import pg from 'pg';
 import { Pool } from 'pg';
 
 
+// For .env file 
+dotenv.config()
 // Create a connection pool
 const pool = new Pool({
   user: process.env.PGUSER,
   host: process.env.PGHOST,
   database: process.env.PGDATABASE,
   password: process.env.PGPASSWORD,
-  port: parseInt(process.env.PGPORT, 10),
+  port: parseInt(process.env.PGPORT ?? "8007", 10),
 });
 
 
