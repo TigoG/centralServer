@@ -1,31 +1,34 @@
-import pool  from "../config/db";
+import pool from "../config/db";
 
-import pg from 'pg';
-import { Pool } from 'pg';
+import pg from "pg";
+import { Pool } from "pg";
 
 export const getStationsDB = async () => {
-    const client = await pool.connect();
-    const res  = await client.query('SELECT * FROM stations');
-    client.release();
+  const client = await pool.connect();
+  const res = await client.query("SELECT * FROM stations");
+  client.release();
 
-    return res.rows;
-}
+  return res.rows;
+};
 
 export const getStationsIdsDB = async () => {
-    const client = await pool.connect();
-    const res  = await client.query('SELECT id FROM stations');
-    client.release();
-    return res.rows;
-}
+  const client = await pool.connect();
+  const res = await client.query("SELECT id FROM stations");
+  client.release();
+  return res.rows;
+};
 
 export const getLatestStationData = async (stationId) => {
-    const client = await pool.connect();
-    const res = await client.query('SELECT * FROM sensor_data WHERE station_id = $1 ORDER BY created_at DESC LIMIT 1', [stationId]);
-    client.release();
+  const client = await pool.connect();
+  const res = await client.query(
+    "SELECT * FROM sensor_data WHERE station_id = $1 ORDER BY created_at DESC LIMIT 1",
+    [stationId],
+  );
+  client.release();
 
-    if (res.rowCount === 0) {
-        return null;
-    }
-    // console.log(res);
-    return res.rows[0];
-}
+  if (res.rowCount === 0) {
+    return null;
+  }
+  // console.log(res);
+  return res.rows[0];
+};

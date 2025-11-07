@@ -15,9 +15,8 @@ export const createUser = async (name, email) => {
   const client = await pool.connect();
   const result = client.query(
     "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *",
-    [name, email]
+    [name, email],
   );
   client.return();
   return result.rows[0];
 };
-
