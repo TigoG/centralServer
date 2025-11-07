@@ -1,0 +1,16 @@
+/* Footer.css - percent-based sizing */
+.footer {
+  padding: 1.2% 1.6%;
+  margin-top: 2%;
+}
+
+.footer__inner {
+  width: 92%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer__credit {
+  color: #64748b;
+  font-size: 100%;
+}
