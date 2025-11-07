@@ -26,31 +26,58 @@
           <mxGeometry x="10" y="110" width="180" height="20" as="geometry"/>
         </mxCell>
 
-        <!-- Sensor_data table -->
+        <!-- Updated Sensor_data table -->
         <mxCell id="8" value="sensor_data" style="swimlane;html=1;fillColor=#fff2cc;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="400" y="100" width="220" height="160" as="geometry"/>
+          <mxGeometry x="400" y="100" width="260" height="380" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="id : SERIAL PK" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
-          <mxGeometry x="10" y="30" width="200" height="20" as="geometry"/>
+          <mxGeometry x="10" y="30" width="240" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="10" value="station_id : INT FK -> stations.id" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
-          <mxGeometry x="10" y="50" width="200" height="20" as="geometry"/>
+        <mxCell id="10" value="station_id : INT FK → stations.id" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="50" width="240" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="11" value="sensor_name : VARCHAR(50)" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
-          <mxGeometry x="10" y="70" width="200" height="20" as="geometry"/>
+        <mxCell id="11" value="temperature : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="70" width="240" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="12" value="value : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
-          <mxGeometry x="10" y="90" width="200" height="20" as="geometry"/>
+        <mxCell id="12" value="windspeed : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="90" width="240" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="13" value="uv_value : INT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
-          <mxGeometry x="10" y="110" width="200" height="20" as="geometry"/>
+        <mxCell id="13" value="humidity : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="110" width="240" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="14" value="created_at : TIMESTAMP" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
-          <mxGeometry x="10" y="130" width="200" height="20" as="geometry"/>
+        <mxCell id="14" value="uv : INT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="130" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="15" value="light : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="150" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="16" value="airpressure : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="170" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="17" value="altitude : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="190" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="18" value="soilmoisture : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="210" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="19" value="rain : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="230" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="flowrate : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="250" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="winddirection : VARCHAR(20)" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="270" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="gasresistance : FLOAT" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="290" width="240" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="23" value="created_at : TIMESTAMP DEFAULT NOW()" style="text;html=1;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="8">
+          <mxGeometry x="10" y="310" width="240" height="20" as="geometry"/>
         </mxCell>
 
-        <!-- Relatie lijn -->
-        <mxCell id="15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;" edge="1" parent="1" source="10" target="2">
+        <!-- Relationship line -->
+        <mxCell id="24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;" edge="1" parent="1" source="10" target="2">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
