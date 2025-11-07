@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./Layout.css";
 import Controls from "../Controls/Controls.jsx";
-import Footer from "../Footer/Footer.jsx";
 import WeatherMap, { generateSensors } from "../WeatherMap/WeatherMap.jsx";
 import WeatherCard from "../WeatherCard/WeatherCard.jsx";
 import SearchBar from "../SearchBar/SearchBar.jsx";
 import Model from "../Model/Model.jsx";
 import { STUDENT_NUMBER, NL_CENTER } from "../../config/constants";
 import MQTTModule from "../MQTTModule/MQTTModule.jsx";
-import {
-  GetAllStations,
-  GetStations,
-} from "../BackendConnection/BackendConnection.jsx";
+import { GetStations } from "../BackendConnection/BackendConnection.jsx";
 
 export default function Layout() {
   const [stations, setStations] = useState([]);
@@ -21,9 +17,9 @@ export default function Layout() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     id: STUDENT_NUMBER,
-    name: "",
-    lat: String(NL_CENTER[0]),
-    lon: String(NL_CENTER[1]),
+    student_number: "",
+    latitude: String(NL_CENTER[0]),
+    longitude: String(NL_CENTER[1]),
     location: "1",
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,16 +28,17 @@ export default function Layout() {
 
   function addStation() {
     const id = (addForm.id || "").trim();
-    const name = (addForm.name || "").trim() || `Station ${id}`;
-    const lat = Number(addForm.lat);
-    const lon = Number(addForm.lon);
+    const student_number =
+      (addForm.student_number || "").trim() || `Station ${id}`;
+    const latitude = Number(addForm.latitude);
+    const longitude = Number(addForm.longitude);
     const location = Number(addForm.location) === 0 ? 0 : 1;
 
     if (!id) {
       setSearchError("ID is required");
       return;
     }
-    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
       setSearchError("Latitude and longitude must be numbers");
       return;
     }
@@ -50,11 +47,13 @@ export default function Layout() {
       return;
     }
 
+    // normalize to frontend shape expected by WeatherMap and WeatherCard
     const newStation = {
       id,
-      name,
-      lat,
-      lon,
+      student_number,
+      name: student_number,
+      lat: latitude,
+      lon: longitude,
       location,
       sensors: generateSensors(),
     };
@@ -79,8 +78,10 @@ export default function Layout() {
     const found =
       stations.find((s) => s.id === q) ||
       stations.find((s) => s.id.includes(q) || q.includes(s.id)) ||
-      stations.find((s) => s.name === q) ||
-      stations.find((s) => s.name.includes(q) || q.includes(s.name)) ||
+      stations.find((s) => s.student_number === q) ||
+      stations.find(
+        (s) => s.student_number.includes(q) || q.includes(s.student_number)
+      ) ||
       stations.find((s) => String(s.location) === q); // fix: convert number to string
 
     if (!found) {
@@ -176,6 +177,37 @@ export default function Layout() {
       try {
         const data = await GetStations();
         console.log("Fetched stations from backend:", data);
+        // Normalize backend station objects to the frontend shape expected by WeatherMap and WeatherCard.
+        // Backend may return fields like latitude/longitude or lat/lon and different name keys.
+        const normalized = (Array.isArray(data) ? data : []).map((s) => {
+          const id =
+            s.id ??
+            s.station_id ??
+            String(s.student_number ?? s.name ?? Math.random());
+          const student_number =
+            s.student_number ?? s.name ?? s.id ?? `Station ${id}`;
+          const lat = Number(
+            s.lat ?? s.latitude ?? s.latitude_deg ?? s.latitudeDegrees ?? null
+          );
+          const lon = Number(
+            s.lon ??
+              s.longitude ??
+              s.longitude_deg ??
+              s.longitudeDegrees ??
+              null
+          );
+          const location = Number(s.location ?? s.location_id ?? 1);
+          return {
+            id,
+            student_number,
+            name: student_number,
+            lat: Number.isFinite(lat) ? lat : NL_CENTER[0],
+            lon: Number.isFinite(lon) ? lon : NL_CENTER[1],
+            location,
+            sensors: s.sensors ?? s.latest_sensors ?? generateSensors(),
+          };
+        });
+        setStations(normalized);
       } catch (err) {
         console.error("Error fetching stations:", err);
       }
