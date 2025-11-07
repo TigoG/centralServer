@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from 'dotenv';
+import cors from "cors";
 import pool from './config/db';
 import router from "./routes/templateUserRouter";
 const app = express();
@@ -7,6 +8,11 @@ const PORT = 8445;
 
 dotenv.config();
 
+app.use(cors({
+  origin: ['*'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 app.use(express.json())
  
