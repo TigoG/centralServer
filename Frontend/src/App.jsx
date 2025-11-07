@@ -1,49 +1,59 @@
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import './App.css';
-
-// Fix default icon path (for Leaflet markers served from CDN)
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
-
-const NL_CENTER = [52.1326, 5.2913]; // approximate center of the Netherlands
-const NL_ZOOM = 7;
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import Layout from "./components/Layout/Layout.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import About from "./About.jsx";
+import History from "./components/History/History.jsx";
+import Header from "./components/Header/Header.jsx";
+import Footer from "./components/Footer/Footer.jsx";
+import MQTTModule from './components/MQTTModule/MQTTModule';
 
 export default function App() {
-  const sampleStations = [
-    { id: 'station-1', name: 'Station A', lat: 51.8247, lon: 4.4126 },
-    { id: 'station-2', name: 'Station B', lat: 51.9244, lon: 4.4777 },
-  ];
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    function detectMobile() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+      if (mobileRegex.test(ua)) return true;
+      if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) return true;
+      return window.innerWidth <= 768;
+    }
+
+    setIsMobile(detectMobile());
+
+    function onResize() {
+      setIsMobile(detectMobile());
+    }
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, []);
+
+  if (isMobile) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", padding: 20, textAlign: "center" }}>
+        <div>
+          <h1>This site is only available on computer</h1>
+          <p>Please open this site on a desktop or laptop for the full experience.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>centralServer — Weather Stations</h1>
-      </header>
-      <main className="map-wrap">
-        <MapContainer center={NL_CENTER} zoom={NL_ZOOM} className="leaflet-container">
-          <TileLayer
-            attribution='&copy; OpenStreetMap contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {sampleStations.map((s) => (
-            <Marker key={s.id} position={[s.lat, s.lon]}>
-              <Popup>
-                <div><strong>{s.name}</strong></div>
-                <div>ID: {s.id}</div>
-                <div>Lat: {s.lat}, Lon: {s.lon}</div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
-      </main>
-    </div>
+    <BrowserRouter>
+      <Header title="centralServer" subtitle="Weather Stations" />
+      <Routes>
+        <Route path="/" element={<Layout />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/about" element={<About />} />
+      </Routes>
+      <Footer/>
+    </BrowserRouter>
   );
 }

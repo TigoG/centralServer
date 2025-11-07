@@ -1,0 +1,35 @@
+.about-page {
+    padding: 35px;
+}
+.btn_about {
+  background-color: #00377e;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.slideshow {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.slideshow-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.slideshow-image.active {
+  opacity: 1;
+}
