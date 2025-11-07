@@ -38,7 +38,7 @@ export default function Layout() {
       setSearchError("ID is required");
       return;
     }
-    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
       setSearchError("Latitude and longitude must be numbers");
       return;
     }
@@ -47,11 +47,13 @@ export default function Layout() {
       return;
     }
 
+    // normalize to frontend shape expected by WeatherMap and WeatherCard
     const newStation = {
       id,
       student_number,
-      latitude,
-      longitude,
+      name: student_number,
+      lat: latitude,
+      lon: longitude,
       location,
       sensors: generateSensors(),
     };
@@ -175,7 +177,37 @@ export default function Layout() {
       try {
         const data = await GetStations();
         console.log("Fetched stations from backend:", data);
-        setStations(data);
+        // Normalize backend station objects to the frontend shape expected by WeatherMap and WeatherCard.
+        // Backend may return fields like latitude/longitude or lat/lon and different name keys.
+        const normalized = (Array.isArray(data) ? data : []).map((s) => {
+          const id =
+            s.id ??
+            s.station_id ??
+            String(s.student_number ?? s.name ?? Math.random());
+          const student_number =
+            s.student_number ?? s.name ?? s.id ?? `Station ${id}`;
+          const lat = Number(
+            s.lat ?? s.latitude ?? s.latitude_deg ?? s.latitudeDegrees ?? null
+          );
+          const lon = Number(
+            s.lon ??
+              s.longitude ??
+              s.longitude_deg ??
+              s.longitudeDegrees ??
+              null
+          );
+          const location = Number(s.location ?? s.location_id ?? 1);
+          return {
+            id,
+            student_number,
+            name: student_number,
+            lat: Number.isFinite(lat) ? lat : NL_CENTER[0],
+            lon: Number.isFinite(lon) ? lon : NL_CENTER[1],
+            location,
+            sensors: s.sensors ?? s.latest_sensors ?? generateSensors(),
+          };
+        });
+        setStations(normalized);
       } catch (err) {
         console.error("Error fetching stations:", err);
       }
