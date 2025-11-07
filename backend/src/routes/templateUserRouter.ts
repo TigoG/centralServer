@@ -2,8 +2,8 @@
 
 import express from "express";
 import { getUsers, addUser } from "../controllers/templateUserController";
-import { ping, stationRow } from "../controllers/testController.ts";
-import { getLatestDataRows, getStations } from "../controllers/sensorDataController.ts";
+import { ping, stationRow } from "../controllers/testController";
+import { getLatestDataRows, getStations } from "../controllers/sensorDataController";
 
 const router = express.Router();
 
