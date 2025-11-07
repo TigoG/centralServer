@@ -1,0 +1,33 @@
+/* WeatherMap.css */
+/* Use percent-based sizing so map scales with its parent (html/body/.app are 100% height) */
+.weather-map {
+  min-height: 40%;
+  display: block;
+  width: 100%;
+}
+
+.weather-map__placeholder {
+  min-height: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  font-weight: 600;
+  padding: 2%;
+  font-size: 1rem;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 40%;
+  border-radius: 8px;
+}
+
+.weather-map .leaflet-container {
+  height: 100%;
+  min-height: 40%;
+}
