@@ -1,9 +1,5 @@
-import dotenv from "dotenv";
 import { Pool } from 'pg';
 
-
-// For .env file 
-dotenv.config()
 // Create a connection pool
 const pool = new Pool({
   user: process.env.PGUSER,
