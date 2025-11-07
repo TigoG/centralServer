@@ -1,5 +1,5 @@
 import "./History.css";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -11,10 +11,10 @@ import {
   Legend,
 } from "recharts";
 import { SENSOR_TYPES, DEFAULT_SENSOR } from "../../config/constants";
-import { useStations } from "../../contexts/StationsContext.jsx";
 
 function History() {
-  // Sample time buckets for the chart (mock data)
+  // Sample dataset for multiple student IDs so the dropdown has meaningful options.
+  // In the real app you can replace dataByStudent with data fetched from the backend or MQTT messages.
   const times = [
     "10:00",
     "11:00",
@@ -48,49 +48,24 @@ function History() {
       gasresistance: 100 + ((i + offset) % 200),
     }));
 
-  const { stations } = useStations();
-  const availableStudentIds =
-    stations && stations.length > 0 ? stations.map((s) => s.id) : ["1060011", "1060012", "1060013"];
+  const dataByStudent = {
+    "1060011": makeDataForStudent(0),
+    "1060012": makeDataForStudent(2),
+    "1060013": makeDataForStudent(4),
+  };
 
-  const [selectedStudent, setSelectedStudent] = useState(availableStudentIds[0] || "");
-  useEffect(() => {
-    // If availableStudentIds changes (e.g. after context load), ensure selectedStudent is valid.
-    if (availableStudentIds.length > 0 && !availableStudentIds.includes(selectedStudent)) {
-      setSelectedStudent(availableStudentIds[0]);
-    }
-  }, [availableStudentIds, selectedStudent]);
-
+  const [studentIds] = useState(Object.keys(dataByStudent));
+  const [selectedStudent, setSelectedStudent] = useState(studentIds[0] || "");
   const [selectedSensor, setSelectedSensor] = useState(DEFAULT_SENSOR || "temperature");
 
-  // compute available sensors for the currently selected student (only sensors with valid values)
-  const selectedStation = stations && stations.find((s) => s.id === selectedStudent);
-  const availableSensors = useMemo(() => {
-    if (!selectedStation || !selectedStation.sensors) return [];
-    const keys = Object.keys(selectedStation.sensors).filter((k) => {
-      const v = selectedStation.sensors[k];
-      return v !== -1 && v !== null && v !== undefined;
-    });
-    // preserve SENSOR_TYPES order
-    return SENSOR_TYPES.filter((s) => keys.includes(s));
-  }, [selectedStation]);
-
-  const hasSensors = availableSensors && availableSensors.length > 0;
-  const sensorOptions = hasSensors ? availableSensors : [];
-
-  // Ensure selectedSensor stays valid when selectedStation or availableSensors change
   useEffect(() => {
-    if (hasSensors) {
-      if (!availableSensors.includes(selectedSensor)) {
-        setSelectedSensor(availableSensors[0]);
-      }
-    } else {
-      setSelectedSensor("");
+    // Ensure the selected sensor exists in SENSOR_TYPES; fallback if needed.
+    if (!SENSOR_TYPES.includes(selectedSensor)) {
+      setSelectedSensor(DEFAULT_SENSOR || "temperature");
     }
-  }, [selectedStudent, availableSensors, hasSensors]);
+  }, []); // run once on mount
 
-  // Choose mock chart data based on the index of the selected student so each student shows a different series.
-  const offset = Math.max(0, availableStudentIds.indexOf(selectedStudent));
-  const chartData = makeDataForStudent(offset);
+  const chartData = dataByStudent[selectedStudent] || [];
 
   const sensorLabel = (sensor) => {
     switch (sensor) {
@@ -138,8 +113,6 @@ function History() {
     }
   };
 
-  const sensorOptionsList = sensorOptions && sensorOptions.length > 0 ? sensorOptions : [];
-
   return (
     <div className="history">
       <div className="title">
@@ -157,7 +130,7 @@ function History() {
             onChange={(e) => setSelectedStudent(e.target.value)}
             style={{ marginLeft: 8 }}
           >
-            {availableStudentIds.map((id) => (
+            {studentIds.map((id) => (
               <option key={id} value={id}>
                 {id}
               </option>
@@ -171,56 +144,33 @@ function History() {
             value={selectedSensor}
             onChange={(e) => setSelectedSensor(e.target.value)}
             style={{ marginLeft: 8 }}
-            disabled={!hasSensors}
           >
-            {hasSensors ? (
-              sensorOptionsList.map((s) => (
-                <option key={s} value={s}>
-                  {sensorLabel(s)}
-                </option>
-              ))
-            ) : (
-              <option value="">No sensors available</option>
-            )}
+            {SENSOR_TYPES.map((s) => (
+              <option key={s} value={s}>
+                {sensorLabel(s)}
+              </option>
+            ))}
           </select>
         </label>
       </div>
 
-      {hasSensors ? (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <CartesianGrid stroke="#ccccccff" />
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey={selectedSensor}
-              stroke={strokeFor(selectedSensor)}
-              name={sensorLabel(selectedSensor)}
-              dot={false}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      ) : (
-        <div
-          className="no-sensors-placeholder"
-          style={{
-            height: 300,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#64748b",
-            border: "1px dashed #cbd5e1",
-            borderRadius: 6,
-            background: "#f8fafc",
-          }}
-        >
-          No sensors available for the selected station
-        </div>
-      )}
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={chartData}>
+          <CartesianGrid stroke="#ccccccff" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey={selectedSensor}
+            stroke={strokeFor(selectedSensor)}
+            name={sensorLabel(selectedSensor)}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
