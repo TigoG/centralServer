@@ -40,6 +40,8 @@ export async function GetStations() {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   const data = await response.json();
+  console.log(response.status + response.statusText);
   console.log("Fetched stations from backend:", data);
-  return data;
+
+  return data; // ⬅️ Alleen de data
 }

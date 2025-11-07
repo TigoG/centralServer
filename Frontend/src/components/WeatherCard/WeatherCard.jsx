@@ -2,7 +2,7 @@ import React from "react";
 import "./WeatherCard.css";
 
 export default function WeatherCard({ station = {}, onFocus = () => {} }) {
-  const { id = "unknown", name = "Unknown", sensors = {} } = station;
+  const { id = "unknown", student_number = "Unknown", sensors = {} } = station;
   const tempVal = sensors.temperature;
   const temp =
     typeof tempVal === "number" && tempVal !== -1
@@ -41,7 +41,7 @@ export default function WeatherCard({ station = {}, onFocus = () => {} }) {
 
       <div className="weather-card__body">
         <h3 id={`wc-${id}-title`} className="weather-card__city">
-          {name}
+          {student_number}
         </h3>
         <div className="weather-card__date">
           {new Date().toLocaleDateString()}
@@ -57,7 +57,7 @@ export default function WeatherCard({ station = {}, onFocus = () => {} }) {
             type="button"
             className="weather-card__btn"
             onClick={onFocus}
-            aria-label={`Focus ${name} on map`}
+            aria-label={`Focus ${student_number} on map`}
           >
             Focus
           </button>

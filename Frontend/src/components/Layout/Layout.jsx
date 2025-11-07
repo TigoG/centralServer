@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./Layout.css";
 import Controls from "../Controls/Controls.jsx";
-import Footer from "../Footer/Footer.jsx";
 import WeatherMap, { generateSensors } from "../WeatherMap/WeatherMap.jsx";
 import WeatherCard from "../WeatherCard/WeatherCard.jsx";
 import SearchBar from "../SearchBar/SearchBar.jsx";
 import Model from "../Model/Model.jsx";
 import { STUDENT_NUMBER, NL_CENTER } from "../../config/constants";
 import MQTTModule from "../MQTTModule/MQTTModule.jsx";
-import {
-  GetAllStations,
-  GetStations,
-} from "../BackendConnection/BackendConnection.jsx";
+import { GetStations } from "../BackendConnection/BackendConnection.jsx";
 
 export default function Layout() {
   const [stations, setStations] = useState([]);
@@ -21,9 +17,9 @@ export default function Layout() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     id: STUDENT_NUMBER,
-    name: "",
-    lat: String(NL_CENTER[0]),
-    lon: String(NL_CENTER[1]),
+    student_number: "",
+    latitude: String(NL_CENTER[0]),
+    longitude: String(NL_CENTER[1]),
     location: "1",
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,9 +28,10 @@ export default function Layout() {
 
   function addStation() {
     const id = (addForm.id || "").trim();
-    const name = (addForm.name || "").trim() || `Station ${id}`;
-    const lat = Number(addForm.lat);
-    const lon = Number(addForm.lon);
+    const student_number =
+      (addForm.student_number || "").trim() || `Station ${id}`;
+    const latitude = Number(addForm.latitude);
+    const longitude = Number(addForm.longitude);
     const location = Number(addForm.location) === 0 ? 0 : 1;
 
     if (!id) {
@@ -52,9 +49,9 @@ export default function Layout() {
 
     const newStation = {
       id,
-      name,
-      lat,
-      lon,
+      student_number,
+      latitude,
+      longitude,
       location,
       sensors: generateSensors(),
     };
@@ -79,8 +76,10 @@ export default function Layout() {
     const found =
       stations.find((s) => s.id === q) ||
       stations.find((s) => s.id.includes(q) || q.includes(s.id)) ||
-      stations.find((s) => s.name === q) ||
-      stations.find((s) => s.name.includes(q) || q.includes(s.name)) ||
+      stations.find((s) => s.student_number === q) ||
+      stations.find(
+        (s) => s.student_number.includes(q) || q.includes(s.student_number)
+      ) ||
       stations.find((s) => String(s.location) === q); // fix: convert number to string
 
     if (!found) {
@@ -176,6 +175,7 @@ export default function Layout() {
       try {
         const data = await GetStations();
         console.log("Fetched stations from backend:", data);
+        setStations(data);
       } catch (err) {
         console.error("Error fetching stations:", err);
       }
