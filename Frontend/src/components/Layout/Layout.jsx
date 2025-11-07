@@ -7,21 +7,14 @@ import WeatherCard from "../WeatherCard/WeatherCard.jsx";
 import SearchBar from "../SearchBar/SearchBar.jsx";
 import Model from "../Model/Model.jsx";
 import { STUDENT_NUMBER, NL_CENTER } from "../../config/constants";
-import MQTTModule from '../MQTTModule/MQTTModule.jsx';
+import MQTTModule from "../MQTTModule/MQTTModule.jsx";
+import {
+  GetAllStations,
+  GetStations,
+} from "../BackendConnection/BackendConnection.jsx";
 
 export default function Layout() {
-  const [stations, setStations] = useState(() => {
-    const base = [
-      { id: "1051804", name: "Tigo Goes", lat: 51.8247, lon: 4.4126, location: 0 },
-      { id: "station-2", name: "Station B", lat: 51.9244, lon: 4.4777, location: 1 },
-      { id: "station-3", name: "Station C", lat: 52.0705, lon: 4.3007, location: 1 },
-      { id: "station-4", name: "Station D", lat: 52.091, lon: 5.1234, location: 0 },
-      { id: "station-5", name: "Station E", lat: 51.4416, lon: 5.4697, location: 1 },
-      { id: "station-6", name: "Station F", lat: 52.3702, lon: 4.8952, location: 1 },
-    ];
-    return base.map((s) => ({ ...s, sensors: generateSensors() }));
-  });
-
+  const [stations, setStations] = useState([]);
   const [focusId, setFocusId] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -100,42 +93,41 @@ export default function Layout() {
     setSearchError(null);
   }
 
-  
   // 1. Add state for MQTT data
   const [mqttData, setMqttData] = useState(null);
 
   // 2. Callback to handle MQTT messages
   // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
   function handleMqttMessage(topic, payload) {
-  console.log('MQTT raw:', topic, payload);
+    console.log("MQTT raw:", topic, payload);
 
-  const parts = String(topic).split('/');
+    const parts = String(topic).split("/");
 
-  // Expect: homestations / stationId / location / sensorType
-  if (parts.length < 4 || parts[0].toLowerCase() !== 'homestations') {
-    console.warn('MQTT topic not recognized:', topic);
-    return;
+    // Expect: homestations / stationId / location / sensorType
+    if (parts.length < 4 || parts[0].toLowerCase() !== "homestations") {
+      console.warn("MQTT topic not recognized:", topic);
+      return;
+    }
+
+    const stationId = parts[1];
+    const location = Number(parts[2]);
+    const sensorType = parts[3].toLowerCase();
+
+    // ✅ Value always from payload
+    const value = Number(String(payload));
+    if (isNaN(value)) {
+      console.warn("Invalid payload value:", payload);
+      return;
+    }
+
+    console.log("Parsed MQTT:", { stationId, location, sensorType, value });
+
+    setMqttData({
+      stationId,
+      location,
+      value: { [sensorType]: value },
+    });
   }
-
-  const stationId  = parts[1];
-  const location   = Number(parts[2]);
-  const sensorType = parts[3].toLowerCase();
-
-  // ✅ Value always from payload
-  const value = Number(String(payload));
-  if (isNaN(value)) {
-    console.warn('Invalid payload value:', payload);
-    return;
-  }
-
-  console.log('Parsed MQTT:', { stationId, location, sensorType, value });
-
-  setMqttData({
-    stationId,
-    location,
-    value: { [sensorType]: value }
-  });
-}
 
   // // Periodically regenerate sensors and update tick so popups show live sensor values.
   // // Adjust intervalMs (milliseconds) as desired.
@@ -145,7 +137,7 @@ export default function Layout() {
   //     setStations((prev) => prev.map((s) => ({ ...s, sensors: generateSensors() })));
   //     setTick(Date.now());
   //   }, intervalMs);
-  
+
   //   return () => clearInterval(id);
   // }, []);
 
@@ -153,16 +145,23 @@ export default function Layout() {
   useEffect(() => {
     if (mqttData) {
       const { stationId, location, value } = mqttData;
-      console.log('Updating station:', stationId, 'Location:', location, 'Value:', value);
-      setStations(prevStations => 
-        prevStations.map(station => {
+      console.log(
+        "Updating station:",
+        stationId,
+        "Location:",
+        location,
+        "Value:",
+        value
+      );
+      setStations((prevStations) =>
+        prevStations.map((station) => {
           if (station.id === stationId && station.location === location) {
             return {
               ...station,
               sensors: {
                 ...station.sensors,
-                ...value
-              }
+                ...value,
+              },
             };
           }
           return station;
@@ -171,10 +170,22 @@ export default function Layout() {
     }
   }, [mqttData]);
 
+  useEffect(() => {
+    // Fetch stations from backend on mount
+    async function fetchStations() {
+      try {
+        const data = await GetStations();
+        console.log("Fetched stations from backend:", data);
+      } catch (err) {
+        console.error("Error fetching stations:", err);
+      }
+    }
+    fetchStations();
+  }, []);
+
   return (
     <div className="app">
       <div className="app-body">
-        
         <div className="stations-area">
           <SearchBar
             onSearch={(q) => {
@@ -195,9 +206,18 @@ export default function Layout() {
 
           <div className="homestation-table" aria-label="Stations list">
             <section className="weather-list" aria-live="polite">
-              {stations.map((s) => (
-                <WeatherCard key={s.id} station={s} onFocus={() => setFocusId(s.id)} tick={tick} />
-              ))}
+              {stations.length === 0 ? (
+                <div className="no_stations">No stations found...</div>
+              ) : (
+                stations.map((s) => (
+                  <WeatherCard
+                    key={s.id}
+                    station={s}
+                    onFocus={() => setFocusId(s.id)}
+                    tick={tick}
+                  />
+                ))
+              )}
             </section>
 
             <button
@@ -252,6 +272,5 @@ export default function Layout() {
       />
       <MQTTModule onMessage={handleMqttMessage} />
     </div>
-    
   );
 }
