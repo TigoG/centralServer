@@ -25,6 +25,8 @@ export default function Layout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchError, setSearchError] = useState(null);
   const [tick, setTick] = useState(Date.now());
+  // MQTT client instance (set by MQTTModule via onClient)
+  const [mqttClient, setMqttClient] = useState(null);
 
   function addStation() {
     const id = (addForm.id || "").trim();
@@ -171,6 +173,32 @@ export default function Layout() {
     }
   }, [mqttData]);
 
+  // Publish an actuator command for a station
+  function publishActuator(station, value = 1) {
+    if (!mqttClient) {
+      console.warn("No MQTT client available to publish actuator command");
+      return;
+    }
+    // mqtt.js client exposes `.connected` boolean in browser builds
+    if (mqttClient.connected === false) {
+      console.warn("MQTT client not connected");
+      return;
+    }
+
+    const student = station.student_number || station.id || "unknown";
+    const location = typeof station.location !== "undefined" ? station.location : 1;
+    const topic = `homestations/${student}/${location}/motor`;
+    const payload = String(value);
+
+    mqttClient.publish(topic, payload, (err) => {
+      if (err) {
+        console.error("Failed to publish actuator command:", err);
+      } else {
+        console.log("Published actuator command:", topic, payload);
+      }
+    });
+  }
+
   useEffect(() => {
     // Fetch stations from backend on mount
     async function fetchStations() {
@@ -247,6 +275,7 @@ export default function Layout() {
                     station={s}
                     onFocus={() => setFocusId(s.id)}
                     tick={tick}
+                    onActuator={() => publishActuator(s, 1)}
                   />
                 ))
               )}
@@ -302,7 +331,7 @@ export default function Layout() {
         searchError={searchError}
         setSearchError={setSearchError}
       />
-      <MQTTModule onMessage={handleMqttMessage} />
+      <MQTTModule onMessage={handleMqttMessage} onClient={setMqttClient} />
     </div>
   );
 }

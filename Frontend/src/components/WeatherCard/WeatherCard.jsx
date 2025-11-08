@@ -1,7 +1,7 @@
 import React from "react";
 import "./WeatherCard.css";
 
-export default function WeatherCard({ station = {}, onFocus = () => {} }) {
+export default function WeatherCard({ station = {}, onFocus = () => {}, onActuator = () => {} }) {
   const { id = "unknown", student_number = "Unknown", sensors = {} } = station;
   const tempVal = sensors.temperature;
   const temp =
@@ -52,7 +52,17 @@ export default function WeatherCard({ station = {}, onFocus = () => {} }) {
       <div className="weather-card__right">
         <div className="weather-card__temp">{temp}</div>
         <div className="weather-card__buttons">
-          <button className="weather-card__btn">Actuator</button>
+          <button
+            type="button"
+            className="weather-card__btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (typeof onActuator === "function") onActuator();
+            }}
+            aria-label={`Activate actuator for ${student_number}`}
+          >
+            Actuator
+          </button>
           <button
             type="button"
             className="weather-card__btn"
