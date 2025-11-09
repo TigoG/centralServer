@@ -204,7 +204,7 @@ export default function Layout() {
       return;
     }
 
-    const stationKey = String(station.id ?? station.student_number ?? station.name ?? "unknown");
+    const stationKey = String(station.student_number ?? station.id ?? station.name ?? "unknown");
     const location = typeof station.location !== "undefined" ? station.location : 1;
     const topic = `homestations/${stationKey}/${location}/motor`;
     const payload = String(value);
