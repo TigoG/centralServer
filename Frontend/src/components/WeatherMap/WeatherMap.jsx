@@ -138,17 +138,19 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
       { id: 'station-5', name: 'Station E', lat: 51.4416, lon: 5.4697, location: 1 },
       { id: 'station-6', name: 'Station F', lat: 52.3702, lon: 4.8952, location: 1 },
     ];
-    return base.map((s) => ({ ...s, sensors: generateSensors() }));
+    // start with empty sensors so popups remain empty until real data arrives
+    return base.map((s) => ({ ...s, sensors: {} }));
   });
 
   const stations = propStations ?? internalStations;
 
   // If parent wants to focus a station, open its popup (store only id; popup will reference live station data)
   useEffect(() => {
-    if (!focusId) return;
-    const found = stations.find((s) => s.id === focusId || s.id.includes(focusId) || focusId.includes(s.id));
-    if (found) setFocusedStation({ id: found.id, __openAt: Date.now() });
-  }, [focusId]);
+    if (focusId === null || typeof focusId === 'undefined' || String(focusId) === '') return;
+    const fid = String(focusId);
+    const found = stations.find((s) => String(s?.id ?? '') === fid);
+    if (found) setFocusedStation({ id: String(found.id), __openAt: Date.now() });
+  }, [focusId, stations]);
 
   function FocusedPopup({ station, onClose }) {
     const map = useMap();
@@ -164,10 +166,29 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
     // read the live station object from the current stations array so sensors update while popup is open
     const live = stations.find((s) => s.id === station.id) || station;
 
-    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, live.sensors?.[k]]);
-    const optionalEntries = Object.entries(live.sensors || {}).filter(
+    // Normalize sensor keys but ignore any keys that contain 'update' (including '/update').
+    // This prevents intermediate MQTT update keys from appearing in the popup.
+    const rawSensors = live.sensors || {};
+    const cleanSensors = {};
+    Object.entries(rawSensors).forEach(([rk, rv]) => {
+      if (rv === -1 || rv === null || rv === undefined) return;
+      const keyStr = String(rk || '');
+      const keyLower = keyStr.toLowerCase();
+      // explicitly ignore keys that include 'update' (e.g. 'update' or 'temperature/update')
+      if (keyLower.includes('update')) return;
+      const normalized = keyLower.split('/')[0];
+      if (!(normalized in cleanSensors)) {
+        cleanSensors[normalized] = rv;
+      }
+    });
+    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, cleanSensors[k]]).filter(
+      ([k, v]) => v !== -1 && v !== null && v !== undefined
+    );
+    const optionalEntries = Object.entries(cleanSensors).filter(
       ([k, v]) => !REQUIRED_SENSORS.includes(k) && v !== -1 && v !== null && v !== undefined
     );
+    const hasRequired = requiredEntries.length > 0;
+    const hasOptional = optionalEntries.length > 0;
 
     const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 };
     const chipStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 14, background: '#f1f5f9', marginRight: 8, marginBottom: 8, fontSize: 14 };
@@ -189,18 +210,20 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
             </div>
           </div>
 
-          <div style={{ marginTop: 10 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-              {requiredEntries.map(([k, v]) => (
-                <div key={k} style={chipStyle}>
-                  <span style={sensorKeyStyle}>{k}</span>
-                  <span style={{ color: '#0f172a' }}>{formatSensorValue(k, v) ?? '—'}</span>
-                </div>
-              ))}
+          {hasRequired && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                {requiredEntries.map(([k, v]) => (
+                  <div key={k} style={chipStyle}>
+                    <span style={sensorKeyStyle}>{k}</span>
+                    <span style={{ color: '#0f172a' }}>{formatSensorValue(k, v) ?? '—'}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {optionalEntries.length > 0 && (
+          {hasOptional && (
             <>
               <hr style={{ margin: '10px 0' }} />
               <div style={{ fontWeight: 700, marginBottom: 8 }}>Other sensors</div>
@@ -216,6 +239,9 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
                 </ul>
               </div>
             </>
+          )}
+          {!hasRequired && !hasOptional && (
+            <div style={{ marginTop: 10, color: '#475569' }}>No sensor data available</div>
           )}
         </div>
       </Popup>
