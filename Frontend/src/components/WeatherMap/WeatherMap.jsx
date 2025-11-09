@@ -138,7 +138,8 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
       { id: 'station-5', name: 'Station E', lat: 51.4416, lon: 5.4697, location: 1 },
       { id: 'station-6', name: 'Station F', lat: 52.3702, lon: 4.8952, location: 1 },
     ];
-    return base.map((s) => ({ ...s, sensors: generateSensors() }));
+    // start with empty sensors so popups remain empty until real data arrives
+    return base.map((s) => ({ ...s, sensors: {} }));
   });
 
   const stations = propStations ?? internalStations;
@@ -165,10 +166,25 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
     // read the live station object from the current stations array so sensors update while popup is open
     const live = stations.find((s) => s.id === station.id) || station;
 
-    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, live.sensors?.[k]]).filter(
+    // Normalize sensor keys but ignore any keys that contain 'update' (including '/update').
+    // This prevents intermediate MQTT update keys from appearing in the popup.
+    const rawSensors = live.sensors || {};
+    const cleanSensors = {};
+    Object.entries(rawSensors).forEach(([rk, rv]) => {
+      if (rv === -1 || rv === null || rv === undefined) return;
+      const keyStr = String(rk || '');
+      const keyLower = keyStr.toLowerCase();
+      // explicitly ignore keys that include 'update' (e.g. 'update' or 'temperature/update')
+      if (keyLower.includes('update')) return;
+      const normalized = keyLower.split('/')[0];
+      if (!(normalized in cleanSensors)) {
+        cleanSensors[normalized] = rv;
+      }
+    });
+    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, cleanSensors[k]]).filter(
       ([k, v]) => v !== -1 && v !== null && v !== undefined
     );
-    const optionalEntries = Object.entries(live.sensors || {}).filter(
+    const optionalEntries = Object.entries(cleanSensors).filter(
       ([k, v]) => !REQUIRED_SENSORS.includes(k) && v !== -1 && v !== null && v !== undefined
     );
     const hasRequired = requiredEntries.length > 0;

@@ -247,7 +247,7 @@ export default function Layout() {
             lat: Number.isFinite(lat) ? lat : NL_CENTER[0],
             lon: Number.isFinite(lon) ? lon : NL_CENTER[1],
             location,
-            sensors: s.sensors ?? s.latest_sensors ?? generateSensors(),
+            sensors: s.sensors ?? s.latest_sensors ?? {},
           };
         });
         setStations(normalized);
