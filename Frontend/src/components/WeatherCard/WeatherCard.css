@@ -58,6 +58,14 @@
   color: #00377e;
 }
 
+.weather-card__temp-number {
+  font-weight: 700;
+  font-size: 16px;
+  color: #00377e;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
 .weather-card__buttons {
   display: flex;
   gap: 0.9rem;

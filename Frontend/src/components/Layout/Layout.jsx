@@ -100,28 +100,45 @@ export default function Layout() {
   const [mqttData, setMqttData] = useState(null);
 
   // 2. Callback to handle MQTT messages
-  // Example topic: HomestationDemo/homestations/1051804/0/sensors/value
+  // Example topic variants:
+  //  - homestations/<stationId>/<location>/<sensorType>  (preferred)
+  //  - HomestationDemo/homestations/<stationId>/<location>/<sensorType> (possible prefix)
   function handleMqttMessage(topic, payload) {
     console.log("MQTT raw:", topic, payload);
 
     const parts = String(topic).split("/");
-
-    // Expect: homestations / stationId / location / sensorType
-    if (parts.length < 4 || parts[0].toLowerCase() !== "homestations") {
+    // Find the 'homestations' segment so we tolerate prefixed topics
+    const baseIdx = parts.findIndex((p) => p.toLowerCase() === "homestations");
+    if (baseIdx === -1 || parts.length < baseIdx + 4) {
       console.warn("MQTT topic not recognized:", topic);
       return;
     }
 
-    const stationId = parts[1];
-    const location = Number(parts[2]);
-    const sensorType = parts[3].toLowerCase();
+    const stationIdRaw = parts[baseIdx + 1];
+    const location = Number(parts[baseIdx + 2]);
+    const sensorType = String(parts[baseIdx + 3]).toLowerCase();
 
-    // ✅ Value always from payload
-    const value = Number(String(payload));
+    // Payload may be a simple numeric value or an encoded string like
+    // "stationId/location/sensor/value". Try numeric parse first, then fallback.
+    let value = Number(String(payload));
     if (isNaN(value)) {
-      console.warn("Invalid payload value:", payload);
-      return;
+      const pparts = String(payload).split("/");
+      if (pparts.length >= 4) {
+        // fallback payload format: .../value
+        const maybeVal = Number(pparts[pparts.length - 1]);
+        if (!isNaN(maybeVal)) {
+          value = maybeVal;
+        } else {
+          console.warn("Invalid payload value:", payload);
+          return;
+        }
+      } else {
+        console.warn("Invalid payload value:", payload);
+        return;
+      }
     }
+
+    const stationId = String(stationIdRaw);
 
     console.log("Parsed MQTT:", { stationId, location, sensorType, value });
 
@@ -144,21 +161,23 @@ export default function Layout() {
   //   return () => clearInterval(id);
   // }, []);
 
-  //Replace the existing useEffect with this new one
   useEffect(() => {
     if (mqttData) {
       const { stationId, location, value } = mqttData;
-      console.log(
-        "Updating station:",
-        stationId,
-        "Location:",
-        location,
-        "Value:",
-        value
-      );
+      console.log("Updating station:", stationId, "Location:", location, "Value:", value);
+      const locNum = Number(location);
       setStations((prevStations) =>
         prevStations.map((station) => {
-          if (station.id === stationId && station.location === location) {
+          const sid = String(station.id ?? "");
+          const sstudent = String(station.student_number ?? "");
+          const matches =
+            sid === stationId ||
+            sstudent === stationId ||
+            sid.includes(stationId) ||
+            sstudent.includes(stationId);
+  
+          if (matches && Number(station.location) === locNum) {
+            console.log("Applying MQTT update to station:", station.id || station.student_number);
             return {
               ...station,
               sensors: {
@@ -185,9 +204,9 @@ export default function Layout() {
       return;
     }
 
-    const student = station.student_number || station.id || "unknown";
+    const stationKey = String(station.id ?? station.student_number ?? station.name ?? "unknown");
     const location = typeof station.location !== "undefined" ? station.location : 1;
-    const topic = `homestations/${student}/${location}/motor`;
+    const topic = `homestations/${stationKey}/${location}/motor`;
     const payload = String(value);
 
     mqttClient.publish(topic, payload, (err) => {
@@ -208,12 +227,8 @@ export default function Layout() {
         // Normalize backend station objects to the frontend shape expected by WeatherMap and WeatherCard.
         // Backend may return fields like latitude/longitude or lat/lon and different name keys.
         const normalized = (Array.isArray(data) ? data : []).map((s) => {
-          const id =
-            s.id ??
-            s.station_id ??
-            String(s.student_number ?? s.name ?? Math.random());
-          const student_number =
-            s.student_number ?? s.name ?? s.id ?? `Station ${id}`;
+          const id = String(s.id ?? s.station_id ?? s.student_number ?? s.name ?? Math.random());
+          const student_number = String(s.student_number ?? s.name ?? s.id ?? `Station ${id}`);
           const lat = Number(
             s.lat ?? s.latitude ?? s.latitude_deg ?? s.latitudeDegrees ?? null
           );
