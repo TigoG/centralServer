@@ -3,7 +3,7 @@
 import express from "express";
 import { getUsers, addUser } from "../controllers/templateUserController";
 import { ping, stationRow } from "../controllers/testController";
-import { getLatestDataRows, getStations } from "../controllers/sensorDataController";
+import { getLatestDataRows, getStations, getThreeHoursStationData, updateStation } from "../controllers/sensorDataController";
 
 const router = express.Router();
 
@@ -17,6 +17,8 @@ router.get("/getStationRow", stationRow);
 
 router.get("/getLatestDataRows", getLatestDataRows);
 router.get("/getStations", getStations);
+router.get("/getThreeHoursStationData", getThreeHoursStationData);
+router.post("/updateStation", updateStation);
 
 
 export default router;
