@@ -78,9 +78,8 @@ export default function Layout() {
     }
 
     const found =
-      stations.find((s) => s.id === q) ||
-      stations.find((s) => s.id.includes(q) || q.includes(s.id)) ||
       stations.find((s) => s.student_number === q) ||
+      stations.find((s) => s.student_number.includes(q) || q.includes(s.id)) ||
       stations.find(
         (s) => s.student_number.includes(q) || q.includes(s.student_number)
       ) ||
