@@ -28,6 +28,23 @@ export default function Layout() {
   // MQTT client instance (set by MQTTModule via onClient)
   const [mqttClient, setMqttClient] = useState(null);
 
+  // Normalize various location representations to numeric 0 (inside) or 1 (outside).
+  // Accepts numbers, "0"/"1", "binnen"/"buiten", "inside"/"outside", and fuzzy matches.
+  const normalizeLocation = (v) => {
+    if (v === null || typeof v === "undefined") return 1;
+    if (typeof v === "number" && !Number.isNaN(v)) return Number(v);
+    const s = String(v).trim().toLowerCase();
+    if (s === "") return 1;
+    // explicit numeric strings
+    if (s === "0") return 0;
+    if (s === "1") return 1;
+    // common localized keywords
+    if (s === "binnen" || s === "inside" || s.includes("bin")) return 0;
+    if (s === "buiten" || s === "outside" || s.includes("buit")) return 1;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 1;
+  };
+
   function addStation() {
     const id = (addForm.id || "").trim();
     const student_number =
@@ -70,29 +87,60 @@ export default function Layout() {
     setSearchError(null);
   }
 
-  function handleSearch(qArg) {
-    const q = (qArg ?? searchQuery ?? "").trim();
+  function handleSearch(qArg, locArg = null) {
+    const q = String((qArg ?? searchQuery ?? "")).trim();
+    const loc = locArg === null || typeof locArg === "undefined" ? null : Number(locArg);
+
     if (!q) {
       setSearchError("Enter something to search");
       return;
     }
 
-    const found =
-      stations.find((s) => s.student_number === q) ||
-      stations.find((s) => s.student_number.includes(q) || q.includes(s.id)) ||
-      stations.find(
-        (s) => s.student_number.includes(q) || q.includes(s.student_number)
-      ) ||
-      stations.find((s) => String(s.location) === q); // fix: convert number to string
+    const normalize = (v) => String(v ?? "").trim();
+
+    const matchExactStudent = (s) => normalize(s.student_number) === q;
+    const matchExactId = (s) => normalize(s.id) === q;
+    const matchPartialStudent = (s) => normalize(s.student_number).includes(q);
+    const matchPartialId = (s) => normalize(s.id).includes(q);
+
+    // Candidates: prefer stations matching the chosen location first (if provided)
+    let candidates = Array.isArray(stations) ? stations.slice() : [];
+    if (loc !== null) {
+      candidates = candidates.filter((s) => normalizeLocation(s.location) === Number(loc));
+    }
+
+    // Search order: exact student_number -> exact id -> partial student_number -> partial id
+    let found =
+      candidates.find(matchExactStudent) ||
+      candidates.find(matchExactId) ||
+      candidates.find(matchPartialStudent) ||
+      candidates.find(matchPartialId);
+
+    let relaxed = false;
+    // If not found within the chosen location, try across all stations as a fallback
+    if (!found && loc !== null) {
+      found =
+        stations.find(matchExactStudent) ||
+        stations.find(matchExactId) ||
+        stations.find(matchPartialStudent) ||
+        stations.find(matchPartialId);
+      if (found) relaxed = true;
+    }
 
     if (!found) {
-      setSearchError(`No station found for '${q}'`);
+      setSearchError(`No station found for '${q}'${loc !== null ? ` (location=${loc})` : ""}`);
       return;
     }
 
     setFocusId(null);
     setTimeout(() => setFocusId(found.id), 50);
-    setSearchError(null);
+
+    // show a small hint when we had to relax the location filter; otherwise clear errors
+    if (relaxed) {
+      setSearchError(`No station with '${q}' found at the chosen location; focusing the closest match.`);
+    } else {
+      setSearchError(null);
+    }
   }
 
   // 1. Add state for MQTT data
@@ -238,7 +286,8 @@ export default function Layout() {
               s.longitudeDegrees ??
               null
           );
-          const location = Number(s.location ?? s.location_id ?? 1);
+          const rawLoc = s.location ?? s.location_id ?? 1;
+          const location = normalizeLocation(rawLoc);
           return {
             id,
             student_number,
@@ -262,9 +311,9 @@ export default function Layout() {
       <div className="app-body">
         <div className="stations-area">
           <SearchBar
-            onSearch={(q) => {
+            onSearch={(q, loc) => {
               setSearchQuery(q);
-              handleSearch(q);
+              handleSearch(q, loc);
             }}
           />
           {/* show search errors directly under the search bar */}

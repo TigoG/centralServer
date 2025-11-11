@@ -24,6 +24,16 @@
   box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.08);
 }
 
+.search-bar__select {
+  flex: 0 0 140px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6eef6;
+  background: #fff;
+  color: #0f172a;
+  font-size: 14px;
+}
+
 .search-bar__btn {
   background: #00377e;
   color: #fff;
@@ -42,6 +52,11 @@
   .search-bar__inner {
     flex-direction: column;
     align-items: stretch;
+  }
+  .search-bar__select {
+    width: 100%;
+    margin: 8px 0 0 0;
+    flex: none;
   }
   .search-bar__btn {
     width: 100%;
