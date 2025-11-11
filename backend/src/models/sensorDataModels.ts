@@ -3,11 +3,11 @@ import pool from "../config/db";
 import pg from "pg";
 import { Pool } from "pg";
 
-export const updateStationDB = async (stationId, longitude, latitude) => {
+export const updateStationDB = async (llnummer, longitude, latitude) => {
   const client = await pool.connect();
   const res = await client.query(
-    "UPDATE stations SET longitude = $1, latitude = $2 WHERE id = $3",
-    [longitude, latitude, stationId],
+    "UPDATE stations SET longitude = $1, latitude = $2 WHERE student_number = $3",
+    [longitude, latitude, llnummer],
   );
   client.release();
 
