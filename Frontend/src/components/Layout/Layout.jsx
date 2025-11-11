@@ -15,6 +15,7 @@ export default function Layout() {
   const [showSearch, setShowSearch] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [addForm, setAddForm] = useState({
     id: STUDENT_NUMBER,
     student_number: "",
@@ -22,8 +23,16 @@ export default function Layout() {
     longitude: String(NL_CENTER[1]),
     location: "1",
   });
+  const [updateForm, setUpdateForm] = useState({
+    student_number: "",
+    latitude: String(NL_CENTER[0]),
+    longitude: String(NL_CENTER[1]),
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [searchError, setSearchError] = useState(null);
+  const [updateError, setUpdateError] = useState(null);
+  const [updateSuccess, setUpdateSuccess] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [tick, setTick] = useState(Date.now());
   // MQTT client instance (set by MQTTModule via onClient)
   const [mqttClient, setMqttClient] = useState(null);
@@ -85,6 +94,66 @@ export default function Layout() {
     setShowAddForm(false);
     setShowAddModal(false);
     setSearchError(null);
+  }
+
+  // Submit update to remote endpoint to update station GPS
+  async function updateStationGPS() {
+    const student = String((updateForm.student_number ?? "")).trim();
+    const lat = Number(updateForm.latitude);
+    const lon = Number(updateForm.longitude);
+
+    if (!student) {
+      setUpdateError("Student number (llnummer) is required");
+      return;
+    }
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      setUpdateError("Latitude and longitude must be numbers");
+      return;
+    }
+
+    setIsUpdating(true);
+    setUpdateError(null);
+    setUpdateSuccess(null);
+
+    const url = `http://145.24.237.211:8000/updateStation?llnummer=${encodeURIComponent(
+      student
+    )}&latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}`;
+
+    try {
+      const res = await fetch(url, { method: "POST" });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status} ${res.statusText} ${text}`);
+      }
+
+      // If we have the station locally, update its coords in the UI
+      setStations((prev) =>
+        prev.map((s) => {
+          const sid = String(s.id ?? "");
+          const sstudent = String(s.student_number ?? "");
+          if (
+            sid === student ||
+            sstudent === student ||
+            sid.includes(student) ||
+            sstudent.includes(student)
+          ) {
+            return { ...s, lat, lon };
+          }
+          return s;
+        })
+      );
+
+      setUpdateSuccess("Station GPS updated successfully");
+      // close modal shortly after success
+      setTimeout(() => {
+        setShowUpdateModal(false);
+      }, 800);
+    } catch (err) {
+      console.error("UpdateStation failed:", err);
+      setUpdateError(err.message || String(err));
+    } finally {
+      setIsUpdating(false);
+    }
   }
 
   function handleSearch(qArg, locArg = null) {
@@ -344,18 +413,33 @@ export default function Layout() {
               )}
             </section>
 
-            <button
-              type="button"
-              className="add-station-fab"
-              onClick={() => {
-                setShowAddModal(true);
-                setShowAddForm(false);
-                setSearchError(null);
-              }}
-              aria-label="Add station"
-            >
-              + Add Station
-            </button>
+            <div className="fab-group">
+              <button
+                type="button"
+                className="fab-button add-station-fab"
+                onClick={() => {
+                  setShowAddModal(true);
+                  setShowAddForm(false);
+                  setSearchError(null);
+                }}
+                aria-label="Add station"
+              >
+                + Add Station
+              </button>
+ 
+              <button
+                type="button"
+                className="fab-button"
+                onClick={() => {
+                  setShowUpdateModal(true);
+                  setUpdateError(null);
+                  setUpdateSuccess(null);
+                }}
+                aria-label="Update station GPS"
+              >
+                Update GPS
+              </button>
+            </div>
           </div>
         </div>
 
@@ -383,6 +467,98 @@ export default function Layout() {
           </main>
         </div>
       </div>
+
+      {showUpdateModal && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => {
+            setShowUpdateModal(false);
+            setUpdateError(null);
+            setUpdateSuccess(null);
+          }}
+        >
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Update Station GPS</h2>
+
+            <div className="modal-form">
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="update-llnummer" className="input-label">
+                    Student Number (llnummer)
+                  </label>
+                  <input
+                    id="update-llnummer"
+                    className="controls-input"
+                    type="text"
+                    placeholder="e.g. 1058796"
+                    value={updateForm.student_number}
+                    onChange={(e) =>
+                      setUpdateForm((f) => ({ ...f, student_number: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label htmlFor="update-lat" className="input-label">Latitude</label>
+                  <input
+                    id="update-lat"
+                    className="controls-input"
+                    type="number"
+                    step="any"
+                    placeholder="51.0"
+                    value={updateForm.latitude}
+                    onChange={(e) =>
+                      setUpdateForm((f) => ({ ...f, latitude: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label htmlFor="update-lon" className="input-label">Longitude</label>
+                  <input
+                    id="update-lon"
+                    className="controls-input"
+                    type="number"
+                    step="any"
+                    placeholder="4.0"
+                    value={updateForm.longitude}
+                    onChange={(e) =>
+                      setUpdateForm((f) => ({ ...f, longitude: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+
+              {updateError && <div className="form-error" role="alert">{updateError}</div>}
+              {updateSuccess && <div className="form-success" role="status">{updateSuccess}</div>}
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="controls__btn"
+                  onClick={() => {
+                    setShowUpdateModal(false);
+                    setUpdateError(null);
+                    setUpdateSuccess(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="controls__btn controls__btn--primary"
+                  onClick={updateStationGPS}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? "Updating..." : "Update"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Model
         show={showAddModal}
