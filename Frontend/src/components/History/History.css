@@ -1,8 +1,13 @@
-h2 {   
+h2 {
     margin: 20px;
     color: #00377E;
 }
 
 .title {
     margin-bottom: 20px;
+}
+
+.chart-wrapper {
+    padding: 0 10%;
+    box-sizing: border-box;
 }
