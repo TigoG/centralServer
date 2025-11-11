@@ -54,12 +54,7 @@ export const updateStation = async (req, res) => {
   }
 
   try {
-    const stationId = await getStationIdDB(llnummer);
-    if (stationId === null) {
-      return res.status(404).json({ message: "Station not found" });
-    }
-
-    const success = await updateStationDB(stationId, longitude, latitude);
+    const success = await updateStationDB(llnummer, longitude, latitude);
     if (!success) {
       return res.status(500).json({ message: "Failed to update station" });
     }
