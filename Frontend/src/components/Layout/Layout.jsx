@@ -8,6 +8,7 @@ import Model from "../Model/Model.jsx";
 import { STUDENT_NUMBER, NL_CENTER } from "../../config/constants";
 import MQTTModule from "../MQTTModule/MQTTModule.jsx";
 import { GetStations } from "../BackendConnection/BackendConnection.jsx";
+import { publishStationUpdate } from "../../utils/sensorBus";
 
 export default function Layout() {
   const [stations, setStations] = useState([]);
@@ -61,7 +62,7 @@ export default function Layout() {
     const latitude = Number(addForm.latitude);
     const longitude = Number(addForm.longitude);
     const location = Number(addForm.location) === 0 ? 0 : 1;
-
+  
     if (!id) {
       setSearchError("ID is required");
       return;
@@ -74,23 +75,28 @@ export default function Layout() {
       setSearchError("Station ID already exists");
       return;
     }
-
+  
     // normalize to frontend shape expected by WeatherMap and WeatherCard
-    const newStation = {
+    const newStationMeta = {
       id,
       student_number,
       name: student_number,
       lat: latitude,
       lon: longitude,
       location,
-      sensors: generateSensors(),
     };
-    setStations((prev) => [...prev, newStation]);
-
+  
+    // Generate initial sensors but keep sensors in separate mapping so map doesn't re-render
+    const initialSensors = generateSensors();
+  
+    setStations((prev) => [...prev, newStationMeta]);
+    setStationSensors((prev) => ({ ...prev, [id]: initialSensors }));
+    publishStationUpdate(id, initialSensors);
+  
     // focus newly added station on map
     setFocusId(null);
     setTimeout(() => setFocusId(id), 50);
-
+  
     setShowAddForm(false);
     setShowAddModal(false);
     setSearchError(null);
@@ -212,8 +218,8 @@ export default function Layout() {
     }
   }
 
-  // 1. Add state for MQTT data
-  const [mqttData, setMqttData] = useState(null);
+  // station-level sensors mapping (stationId -> sensors object)
+  const [stationSensors, setStationSensors] = useState({});
 
   // 2. Callback to handle MQTT messages
   // Example topic variants:
@@ -221,7 +227,7 @@ export default function Layout() {
   //  - HomestationDemo/homestations/<stationId>/<location>/<sensorType> (possible prefix)
   function handleMqttMessage(topic, payload) {
     console.log("MQTT raw:", topic, payload);
-
+  
     const parts = String(topic).split("/");
     // Find the 'homestations' segment so we tolerate prefixed topics
     const baseIdx = parts.findIndex((p) => p.toLowerCase() === "homestations");
@@ -229,15 +235,15 @@ export default function Layout() {
       console.warn("MQTT topic not recognized:", topic);
       return;
     }
-
+  
     const stationIdRaw = parts[baseIdx + 1];
-    const location = Number(parts[baseIdx + 2]);
+    const locationRaw = parts[baseIdx + 2];
     // normalize sensor key so variants like "wind-direction" or "wind_direction" map to "winddirection"
     const rawSensorType = String(parts[baseIdx + 3] || "").toLowerCase();
     const sensorType = rawSensorType.replace(/[^a-z0-9]/g, "");
-
+  
     const payloadStr = String(payload).trim();
-
+  
     let value;
     if (sensorType === "winddirection") {
       // accept either numeric degrees or compass strings (e.g. "N", "NE")
@@ -270,16 +276,60 @@ export default function Layout() {
         }
       }
     }
-
-    const stationId = String(stationIdRaw);
-
-    console.log("Parsed MQTT:", { stationId, location, sensorType, value });
-
-    setMqttData({
-      stationId,
-      location,
-      value: { [sensorType]: value },
+  
+    const parsedStationId = String(stationIdRaw);
+    const locNum = Number(locationRaw);
+  
+    console.log("Parsed MQTT:", { stationId: parsedStationId, location: locNum, sensorType, value });
+  
+    // Find canonical station(s) from our stations list using the same flexible matching we had previously.
+    let matchedStations = stations.filter((station) => {
+      const sid = String(station.id ?? "");
+      const sstudent = String(station.student_number ?? "");
+      const matches =
+        sid === parsedStationId ||
+        sstudent === parsedStationId ||
+        sid.includes(parsedStationId) ||
+        sstudent.includes(parsedStationId);
+      return matches && Number(station.location) === locNum;
     });
+  
+    // If nothing matched with location, try without location as a fallback (mirrors previous behavior).
+    if (matchedStations.length === 0) {
+      matchedStations = stations.filter((station) => {
+        const sid = String(station.id ?? "");
+        const sstudent = String(station.student_number ?? "");
+        return (
+          sid === parsedStationId ||
+          sstudent === parsedStationId ||
+          sid.includes(parsedStationId) ||
+          sstudent.includes(parsedStationId)
+        );
+      });
+      if (matchedStations.length > 0) {
+        console.warn("MQTT matched station id but not location; applying update to fallback matches.");
+      }
+    }
+  
+    if (matchedStations.length === 0) {
+      console.warn("No station in local list matches MQTT station id:", parsedStationId);
+      return;
+    }
+  
+    const update = { [sensorType]: value };
+  
+    // Update stationSensors for each matched canonical id and publish station updates.
+    setStationSensors((prev) => {
+      const next = { ...prev };
+      matchedStations.forEach((ms) => {
+        const key = String(ms.id);
+        const prevFor = next[key] || {};
+        next[key] = { ...prevFor, ...update };
+      });
+      return next;
+    });
+  
+    matchedStations.forEach((ms) => publishStationUpdate(String(ms.id), update));
   }
 
   // // Periodically regenerate sensors and update tick so popups show live sensor values.
@@ -294,36 +344,6 @@ export default function Layout() {
   //   return () => clearInterval(id);
   // }, []);
 
-  useEffect(() => {
-    if (mqttData) {
-      const { stationId, location, value } = mqttData;
-      console.log("Updating station:", stationId, "Location:", location, "Value:", value);
-      const locNum = Number(location);
-      setStations((prevStations) =>
-        prevStations.map((station) => {
-          const sid = String(station.id ?? "");
-          const sstudent = String(station.student_number ?? "");
-          const matches =
-            sid === stationId ||
-            sstudent === stationId ||
-            sid.includes(stationId) ||
-            sstudent.includes(stationId);
-  
-          if (matches && Number(station.location) === locNum) {
-            console.log("Applying MQTT update to station:", station.id || station.student_number);
-            return {
-              ...station,
-              sensors: {
-                ...station.sensors,
-                ...value,
-              },
-            };
-          }
-          return station;
-        })
-      );
-    }
-  }, [mqttData]);
 
   // Publish an actuator command for a station
   function publishActuator(station, value = 1) {
@@ -359,6 +379,7 @@ export default function Layout() {
         console.log("Fetched stations from backend:", data);
         // Normalize backend station objects to the frontend shape expected by WeatherMap and WeatherCard.
         // Backend may return fields like latitude/longitude or lat/lon and different name keys.
+        const sensorsMap = {};
         const normalized = (Array.isArray(data) ? data : []).map((s) => {
           const id = String(s.id ?? s.station_id ?? s.student_number ?? s.name ?? Math.random());
           const student_number = String(s.student_number ?? s.name ?? s.id ?? `Station ${id}`);
@@ -374,6 +395,8 @@ export default function Layout() {
           );
           const rawLoc = s.location ?? s.location_id ?? 1;
           const location = normalizeLocation(rawLoc);
+          const sensors = s.sensors ?? s.latest_sensors ?? {};
+          sensorsMap[id] = sensors;
           return {
             id,
             student_number,
@@ -381,10 +404,17 @@ export default function Layout() {
             lat: Number.isFinite(lat) ? lat : NL_CENTER[0],
             lon: Number.isFinite(lon) ? lon : NL_CENTER[1],
             location,
-            sensors: s.sensors ?? s.latest_sensors ?? {},
+            // intentionally keep station metadata free of sensor values so map/popups don't re-render on sensor updates
           };
         });
         setStations(normalized);
+        setStationSensors(sensorsMap);
+        // publish initial sensor values so any open popup or map subscriber can get them
+        Object.entries(sensorsMap).forEach(([sid, sensors]) => {
+          if (sensors && Object.keys(sensors).length > 0) {
+            publishStationUpdate(sid, sensors);
+          }
+        });
       } catch (err) {
         console.error("Error fetching stations:", err);
       }
@@ -421,7 +451,7 @@ export default function Layout() {
                 stations.map((s) => (
                   <WeatherCard
                     key={s.id}
-                    station={s}
+                    station={{ ...s, sensors: stationSensors[s.id] ?? {} }}
                     onFocus={() => setFocusId(s.id)}
                     tick={tick}
                     onActuator={() => publishActuator(s, 1)}

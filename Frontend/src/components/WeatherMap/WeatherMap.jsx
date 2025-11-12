@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './WeatherMap.css';
 import { NL_CENTER, NL_ZOOM, SENSOR_TYPES, STUDENT_NUMBER } from '../../config/constants';
+import { subscribeToStation } from '../../utils/sensorBus';
 
 // Fix default icon path (for Leaflet markers served from CDN)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -154,95 +155,164 @@ function WeatherMap({ stations: propStations = null, focusId = null, onSelect = 
 
   function FocusedPopup({ station, onClose }) {
     const map = useMap();
-
+  
+    // Use refs and direct DOM updates so the Popup element itself is not re-created
+    // on every sensor update — only the text nodes are mutated to avoid flicker.
+    const containerRef = useRef(null);
+    const localSensorsRef = useRef({});
+    const unsubscribeRef = useRef(null);
+  
     useEffect(() => {
       if (!station) return;
-      const live = stations.find((s) => s.id === station.id) || station;
-      map.panTo([live.lat, live.lon], { animate: true });
-    }, [station, map, stations]);
-
-    if (!station) return null;
-
-    // read the live station object from the current stations array so sensors update while popup is open
-    const live = stations.find((s) => s.id === station.id) || station;
-
-    // Normalize sensor keys but ignore any keys that contain 'update' (including '/update').
-    // This prevents intermediate MQTT update keys from appearing in the popup.
-    const rawSensors = live.sensors || {};
-    const cleanSensors = {};
-    Object.entries(rawSensors).forEach(([rk, rv]) => {
-      if (rv === -1 || rv === null || rv === undefined) return;
-      const keyStr = String(rk || '');
-      const keyLower = keyStr.toLowerCase();
-      // explicitly ignore keys that include 'update' (e.g. 'update' or 'temperature/update')
-      if (keyLower.includes('update')) return;
-      const normalized = keyLower.split('/')[0];
-      if (!(normalized in cleanSensors)) {
-        cleanSensors[normalized] = rv;
+      const liveMeta = stations.find((s) => s.id === station.id) || station;
+      // center map on the station when opening
+      map.panTo([liveMeta.lat, liveMeta.lon], { animate: true });
+  
+      // initialize from any available metadata sensors
+      const initial = stations.find((s) => s.id === station.id)?.sensors || {};
+      localSensorsRef.current = { ...initial };
+  
+      // ensure the popup DOM is initialized, then apply initial values
+      const initTimeout = setTimeout(() => {
+        updateDomWithSensors(localSensorsRef.current);
+      }, 0);
+  
+      // subscribe to per-station updates (published by Layout via sensorBus)
+      const unsubscribe = subscribeToStation(String(station.id), (update) => {
+        // merge into local snapshot
+        localSensorsRef.current = { ...localSensorsRef.current, ...update };
+        // update only the DOM text nodes for changed sensors
+        updateDomWithSensors(update);
+      });
+      unsubscribeRef.current = unsubscribe;
+  
+      return () => {
+        clearTimeout(initTimeout);
+        if (typeof unsubscribe === 'function') unsubscribe();
+        unsubscribeRef.current = null;
+      };
+    }, [station?.id, map, stations]);
+  
+    // Update the popup DOM in-place based on the current snapshot.
+    function updateDomWithSensors() {
+      const container = containerRef.current;
+      if (!container) return;
+  
+      const snapshot = localSensorsRef.current || {};
+  
+      // Build normalized sensor map (ignore keys containing "update")
+      const cleanSensors = {};
+      Object.entries(snapshot || {}).forEach(([rk, rv]) => {
+        if (rv === -1 || rv === null || rv === undefined) return;
+        const keyLower = String(rk || '').toLowerCase();
+        if (keyLower.includes('update')) return;
+        const normalized = keyLower.split('/')[0];
+        if (!(normalized in cleanSensors)) cleanSensors[normalized] = rv;
+      });
+  
+      // Required sensors: update their text (always render chips; hide section if none)
+      const requiredSection = container.querySelector('[data-required-section]');
+      let hasRequired = false;
+      REQUIRED_SENSORS.forEach((k) => {
+        const el = container.querySelector(`[data-sensor="${k}"]`);
+        const valueSpan = el ? el.querySelector('.sensor-value') : null;
+        const v = cleanSensors[k];
+        if (v === -1 || v === null || typeof v === 'undefined') {
+          if (valueSpan) valueSpan.textContent = '—';
+          if (el) el.style.display = '';
+        } else {
+          hasRequired = true;
+          if (valueSpan) valueSpan.textContent = formatSensorValue(k, v);
+          if (el) el.style.display = '';
+        }
+      });
+      if (requiredSection) requiredSection.style.display = hasRequired ? '' : 'none';
+  
+      // Optional sensors: show/hide list items based on presence and update their values
+      const optionalSection = container.querySelector('[data-optional-section]');
+      let hasOptional = false;
+      OPTIONAL_SENSORS.forEach((k) => {
+        const el = container.querySelector(`[data-sensor="${k}"]`);
+        const valueSpan = el ? el.querySelector('.sensor-value') : null;
+        const v = cleanSensors[k];
+        if (v === -1 || v === null || typeof v === 'undefined') {
+          if (el) el.style.display = 'none';
+        } else {
+          hasOptional = true;
+          if (valueSpan) valueSpan.textContent = formatSensorValue(k, v);
+          if (el) el.style.display = '';
+        }
+      });
+      if (optionalSection) optionalSection.style.display = hasOptional ? '' : 'none';
+  
+      // No-data message: visible only when neither required nor optional sensors present
+      const noDataEl = container.querySelector('[data-no-data]');
+      if (noDataEl) {
+        noDataEl.style.display = hasRequired || hasOptional ? 'none' : '';
       }
-    });
-    const requiredEntries = REQUIRED_SENSORS.map((k) => [k, cleanSensors[k]]).filter(
-      ([k, v]) => v !== -1 && v !== null && v !== undefined
-    );
-    const optionalEntries = Object.entries(cleanSensors).filter(
-      ([k, v]) => !REQUIRED_SENSORS.includes(k) && v !== -1 && v !== null && v !== undefined
-    );
-    const hasRequired = requiredEntries.length > 0;
-    const hasOptional = optionalEntries.length > 0;
-
+    }
+  
+    if (!station) return null;
+  
+    // station metadata (stable) — use for name/coords/location
+    const meta = stations.find((s) => s.id === station.id) || station;
+  
     const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 };
     const chipStyle = { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 14, background: '#f1f5f9', marginRight: 8, marginBottom: 8, fontSize: 14 };
     const sensorKeyStyle = { fontWeight: 700, marginRight: 6, textTransform: 'capitalize' };
     const linkStyle = { color: '#0b7285', textDecoration: 'none' };
-
+  
     return (
-      <Popup key={station.__openAt || station.id} position={[live.lat, live.lon]} onClose={onClose} closeButton>
-        <div style={{ minWidth: 300, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
+      <Popup key={station.__openAt || station.id} position={[meta.lat, meta.lon]} onClose={onClose} closeButton>
+        <div ref={containerRef} style={{ minWidth: 300, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
           <div style={headerStyle}>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>{live.name}</div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>{meta.name}</div>
               <div style={{ fontSize: 12, color: '#475569' }}>
-                ID: {live.id} • {live.location === 0 ? 'Binnen' : 'Buiten'}
+                ID: {meta.id} • {meta.location === 0 ? 'Binnen' : 'Buiten'}
               </div>
             </div>
             <div>
               <button onClick={onClose} style={{ border: 'none', background: '#e2e8f0', padding: '6px 10px', borderRadius: 6, cursor: 'pointer' }}>Close</button>
             </div>
           </div>
-
-          {hasRequired && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                {requiredEntries.map(([k, v]) => (
-                  <div key={k} style={chipStyle}>
-                    <span style={sensorKeyStyle}>{k}</span>
-                    <span style={{ color: '#0f172a' }}>{formatSensorValue(k, v) ?? '—'}</span>
-                  </div>
-                ))}
-              </div>
+  
+          {/* Required sensors section (render chips for each required sensor). */}
+          <div data-required-section style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+              {REQUIRED_SENSORS.map((k) => (
+                <div key={k} data-sensor={k} style={chipStyle}>
+                  <span style={sensorKeyStyle}>{k}</span>
+                  <span className="sensor-value" style={{ color: '#0f172a' }}>
+                    {formatSensorValue(k, localSensorsRef.current[k]) ?? '—'}
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
-
-          {hasOptional && (
-            <>
-              <hr style={{ margin: '10px 0' }} />
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Other sensors</div>
-              <div>
-                <ul style={{ paddingLeft: 16, marginTop: 4 }}>
-                  {optionalEntries.map(([k, v]) => (
-                    <li key={k} style={{ marginBottom: 8 }}>
+          </div>
+  
+          {/* Optional sensors section (each optional sensor is a stable list item that is hidden/shown via DOM updates). */}
+          <div data-optional-section>
+            <hr style={{ margin: '10px 0' }} />
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Other sensors</div>
+            <div>
+              <ul style={{ paddingLeft: 16, marginTop: 4 }}>
+                {OPTIONAL_SENSORS.map((k) => {
+                  const v = localSensorsRef.current[k];
+                  const visible = v !== -1 && v !== null && typeof v !== 'undefined';
+                  return (
+                    <li key={k} data-sensor={k} style={{ marginBottom: 8, display: visible ? '' : 'none' }}>
                       <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{k}</span>
                       <span>: </span>
-                      <span style={{ color: '#0f172a' }}> {formatSensorValue(k, v)}</span>
+                      <span className="sensor-value" style={{ color: '#0f172a' }}>{formatSensorValue(k, v)}</span>
                     </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
-          {!hasRequired && !hasOptional && (
-            <div style={{ marginTop: 10, color: '#475569' }}>No sensor data available</div>
-          )}
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+  
+          <div data-no-data style={{ marginTop: 10, color: '#475569', display: 'none' }}>No sensor data available</div>
         </div>
       </Popup>
     );
