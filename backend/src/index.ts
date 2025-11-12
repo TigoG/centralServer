@@ -16,7 +16,7 @@ dotenv.config();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://145.24.237.211:8002',
-  'http://145.24.237.211:80'
+  'http://145.24.237.211'
 ];
 
 app.use(cors({
