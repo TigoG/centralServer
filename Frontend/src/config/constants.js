@@ -8,7 +8,7 @@ export const SENSOR_TYPES = [
   'humidity',
   'uv',
   'light',
-  'airpresure',
+  'airpressure',
   'altitude',
   'soilmoisture',
   'rain',

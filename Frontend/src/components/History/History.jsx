@@ -39,7 +39,7 @@ function History() {
       windspeed: Math.round(((i + offset) % 8) * 1.3 * 10) / 10, // km/h
       light: 200 + ((i + offset) % 6) * 50, // lx
       uv: ((i + offset) % 11) / 2,
-      airpresure: 1010 + ((i + offset) % 5),
+      airpressure: 1010 + ((i + offset) % 5),
       altitude: 50 + ((i + offset) % 10),
       soilmoisture: 30 + ((i + offset) % 50),
       rain: ((i + offset) % 3) === 0 ? ((i + offset) % 10) : 0,
@@ -309,7 +309,7 @@ function History() {
         return "UV index";
       case "light":
         return "Light (lx)";
-      case "airpresure":
+      case "airpressure":
         return "Air pressure (hPa)";
       case "altitude":
         return "Altitude (m)";
