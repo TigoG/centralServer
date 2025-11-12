@@ -5,10 +5,11 @@ import image2 from "./assets/test_design-2.png";
 import image3 from "./assets/weerstation1.png";
 import image4 from "./assets/weerstation2.jpg";
 import image5 from "./assets/weerstation3.jpg";
+import image6 from "./assets/weerstation4.jpg";
 function About() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const images = [image1, image2, image3, image4, image5];
+  const images = [image1, image2, image3, image4, image5, image6];
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) =>
