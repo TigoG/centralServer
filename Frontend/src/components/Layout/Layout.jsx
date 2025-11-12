@@ -232,25 +232,42 @@ export default function Layout() {
 
     const stationIdRaw = parts[baseIdx + 1];
     const location = Number(parts[baseIdx + 2]);
-    const sensorType = String(parts[baseIdx + 3]).toLowerCase();
+    // normalize sensor key so variants like "wind-direction" or "wind_direction" map to "winddirection"
+    const rawSensorType = String(parts[baseIdx + 3] || "").toLowerCase();
+    const sensorType = rawSensorType.replace(/[^a-z0-9]/g, "");
 
-    // Payload may be a simple numeric value or an encoded string like
-    // "stationId/location/sensor/value". Try numeric parse first, then fallback.
-    let value = Number(String(payload));
-    if (isNaN(value)) {
-      const pparts = String(payload).split("/");
-      if (pparts.length >= 4) {
-        // fallback payload format: .../value
-        const maybeVal = Number(pparts[pparts.length - 1]);
-        if (!isNaN(maybeVal)) {
-          value = maybeVal;
+    const payloadStr = String(payload).trim();
+
+    let value;
+    if (sensorType === "winddirection") {
+      // accept either numeric degrees or compass strings (e.g. "N", "NE")
+      const num = Number(payloadStr);
+      if (!isNaN(num)) {
+        value = num;
+      } else if (payloadStr.includes("/")) {
+        const pparts = payloadStr.split("/");
+        value = pparts[pparts.length - 1];
+      } else {
+        value = payloadStr;
+      }
+    } else {
+      const num = Number(payloadStr);
+      if (!isNaN(num)) {
+        value = num;
+      } else {
+        const pparts = String(payload).split("/");
+        if (pparts.length >= 1) {
+          const maybeVal = Number(pparts[pparts.length - 1]);
+          if (!isNaN(maybeVal)) {
+            value = maybeVal;
+          } else {
+            console.warn("Invalid payload value:", payload);
+            return;
+          }
         } else {
           console.warn("Invalid payload value:", payload);
           return;
         }
-      } else {
-        console.warn("Invalid payload value:", payload);
-        return;
       }
     }
 
