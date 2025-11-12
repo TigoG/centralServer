@@ -62,7 +62,7 @@ export default function Layout() {
     const latitude = Number(addForm.latitude);
     const longitude = Number(addForm.longitude);
     const location = Number(addForm.location) === 0 ? 0 : 1;
-  
+
     if (!id) {
       setSearchError("ID is required");
       return;
@@ -75,7 +75,7 @@ export default function Layout() {
       setSearchError("Station ID already exists");
       return;
     }
-  
+
     // normalize to frontend shape expected by WeatherMap and WeatherCard
     const newStationMeta = {
       id,
@@ -85,18 +85,18 @@ export default function Layout() {
       lon: longitude,
       location,
     };
-  
+
     // Generate initial sensors but keep sensors in separate mapping so map doesn't re-render
     const initialSensors = generateSensors();
-  
+
     setStations((prev) => [...prev, newStationMeta]);
     setStationSensors((prev) => ({ ...prev, [id]: initialSensors }));
     publishStationUpdate(id, initialSensors);
-  
+
     // focus newly added station on map
     setFocusId(null);
     setTimeout(() => setFocusId(id), 50);
-  
+
     setShowAddForm(false);
     setShowAddModal(false);
     setSearchError(null);
@@ -227,7 +227,7 @@ export default function Layout() {
   //  - HomestationDemo/homestations/<stationId>/<location>/<sensorType> (possible prefix)
   function handleMqttMessage(topic, payload) {
     console.log("MQTT raw:", topic, payload);
-  
+
     const parts = String(topic).split("/");
     // Find the 'homestations' segment so we tolerate prefixed topics
     const baseIdx = parts.findIndex((p) => p.toLowerCase() === "homestations");
@@ -235,15 +235,15 @@ export default function Layout() {
       console.warn("MQTT topic not recognized:", topic);
       return;
     }
-  
+
     const stationIdRaw = parts[baseIdx + 1];
     const locationRaw = parts[baseIdx + 2];
     // normalize sensor key so variants like "wind-direction" or "wind_direction" map to "winddirection"
     const rawSensorType = String(parts[baseIdx + 3] || "").toLowerCase();
     const sensorType = rawSensorType.replace(/[^a-z0-9]/g, "");
-  
+
     const payloadStr = String(payload).trim();
-  
+
     let value;
     if (sensorType === "winddirection") {
       // accept either numeric degrees or compass strings (e.g. "N", "NE")
@@ -255,6 +255,23 @@ export default function Layout() {
         value = pparts[pparts.length - 1];
       } else {
         value = payloadStr;
+      }
+    } else if (sensorType === "rain") {
+      // Handle rain as boolean or numeric
+      const lowerPayload = payloadStr.toLowerCase();
+      if (lowerPayload === "true" || lowerPayload === "1") {
+        value = true;
+      } else if (lowerPayload === "false" || lowerPayload === "0") {
+        value = false;
+      } else {
+        // Try as numeric (mm of rain)
+        const num = Number(payloadStr);
+        if (!isNaN(num)) {
+          value = num;
+        } else {
+          console.warn("Invalid rain payload value:", payload);
+          return;
+        }
       }
     } else {
       const num = Number(payloadStr);
@@ -276,12 +293,12 @@ export default function Layout() {
         }
       }
     }
-  
+
     const parsedStationId = String(stationIdRaw);
     const locNum = Number(locationRaw);
-  
+
     console.log("Parsed MQTT:", { stationId: parsedStationId, location: locNum, sensorType, value });
-  
+
     // Find canonical station(s) from our stations list using the same flexible matching we had previously.
     let matchedStations = stations.filter((station) => {
       const sid = String(station.id ?? "");
@@ -293,7 +310,7 @@ export default function Layout() {
         sstudent.includes(parsedStationId);
       return matches && Number(station.location) === locNum;
     });
-  
+
     // If nothing matched with location, try without location as a fallback (mirrors previous behavior).
     if (matchedStations.length === 0) {
       matchedStations = stations.filter((station) => {
@@ -310,14 +327,14 @@ export default function Layout() {
         console.warn("MQTT matched station id but not location; applying update to fallback matches.");
       }
     }
-  
+
     if (matchedStations.length === 0) {
       console.warn("No station in local list matches MQTT station id:", parsedStationId);
       return;
     }
-  
+
     const update = { [sensorType]: value };
-  
+
     // Update stationSensors for each matched canonical id and publish station updates.
     setStationSensors((prev) => {
       const next = { ...prev };
@@ -328,7 +345,7 @@ export default function Layout() {
       });
       return next;
     });
-  
+
     matchedStations.forEach((ms) => publishStationUpdate(String(ms.id), update));
   }
 
@@ -388,10 +405,10 @@ export default function Layout() {
           );
           const lon = Number(
             s.lon ??
-              s.longitude ??
-              s.longitude_deg ??
-              s.longitudeDegrees ??
-              null
+            s.longitude ??
+            s.longitude_deg ??
+            s.longitudeDegrees ??
+            null
           );
           const rawLoc = s.location ?? s.location_id ?? 1;
           const location = normalizeLocation(rawLoc);
@@ -473,7 +490,7 @@ export default function Layout() {
               >
                 + Add Station
               </button>
- 
+
               <button
                 type="button"
                 className="fab-button"
